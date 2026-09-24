@@ -1,0 +1,5 @@
+team_id,team,date,h_a,result,scored,missed,xG,xGA,npxG,npxGA,deep,ppda_att,ppda_def,xpts,pts
+0,Arsenal,2026-08-21 20:00:00,h,w,3,0,1.88,0.2,1.51,,5,20,1.5,0
+0,Chelsea,2026-08-21 20:00:00,a,l,0,3,0.2,1.88,0.2,,5,20,1.5,0
+0,Liverpool,2026-08-22 12:30:00,h,d,2,2,1.45,2.03,1.45,,5,20,1.5,0
+0,Everton,2026-08-22 12:30:00,a,d,2,2,2.03,1.45,1.28,,5,20,1.5,0

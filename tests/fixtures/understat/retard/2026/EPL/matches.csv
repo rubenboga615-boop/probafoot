@@ -1,0 +1,5 @@
+match_id,date,is_result,home_team,away_team,home_goals,away_goals,home_xg,away_xg,source
+1000,2026-08-21 20:00:00,False,Arsenal,Chelsea,3,0,0,0,endpoint
+1001,2026-08-22 12:30:00,True,Liverpool,Everton,2,2,1.45,2.03,endpoint
+1002,2026-10-03 15:00:00,False,Chelsea,Arsenal,0,0,0,0,endpoint
+1003,2026-10-03 17:30:00,False,Everton,Liverpool,0,0,0,0,endpoint

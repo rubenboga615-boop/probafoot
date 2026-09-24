@@ -4,7 +4,8 @@ Schéma de la base (docs/ARCHITECTURE.md)
 
 Quatre tables pour l'instant : `ligues` et `clubs`, chargées depuis
 `data/reference/` par `ingestion/charger_referentiel.py` (T03), puis `matchs` et
-`stats_match`, remplies par `ingestion/football_data.py` (T04). Les huit autres
+`stats_match`, remplies par `ingestion/football_data.py` (T04) puis enrichies
+en xG par `ingestion/understat.py` (T05). Les huit autres
 tables d'ARCHITECTURE.md sont déclarées par la tâche qui les remplit : on ne
 fige pas des colonnes avant de connaître leur usage réel.
 
@@ -172,8 +173,18 @@ class StatsMatch(Base):
     ses cinq derniers matchs » se lit sans distinguer le camp à chaque fois.
 
     `xg` est nullable et reste vide pour l'historique : football-data ne publie
-    les colonnes `HxG`/`AxG` que depuis la saison 2026-27. T05 remplira le reste
+    les colonnes `HxG`/`AxG` que depuis la saison 2026-27. T05 remplit le reste
     depuis understat (D03), dans cette même colonne.
+
+    `npxg` — le xG hors penalty — ne vient que d'understat. Un penalty est un
+    processus différent du jeu courant, que Dixon-Coles modélise : T10 pourra
+    régler le mélange buts / xG / npxG en validation. C'est la seule colonne
+    d'understat retenue au-delà de `xg` (choix du propriétaire en T05) ;
+    `deep`, `ppda` et `xpts` restent dans les CSV, qu'on relira si une tâche
+    les réclame.
+
+    Pas de colonne `xga` : le xG concédé par une équipe est le `xg` de la ligne
+    adverse du même `match_id`, garanti présente par `uq_stats_match_camp`.
     """
 
     __tablename__ = "stats_match"
@@ -189,6 +200,13 @@ class StatsMatch(Base):
             "tirs_cadres IS NULL OR tirs IS NULL OR tirs_cadres <= tirs",
             name="ck_stats_match_tirs_cadres",
         ),
+        # Le xG hors penalty ne peut pas dépasser le xG total. La tolérance
+        # absorbe l'arrondi des flottants, pas une inversion de colonnes.
+        CheckConstraint(
+            "npxg IS NULL OR xg IS NULL OR npxg <= xg + 0.000001",
+            name="ck_stats_match_npxg",
+        ),
+        CheckConstraint("xg IS NULL OR xg >= 0", name="ck_stats_match_xg_positif"),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -206,6 +224,7 @@ class StatsMatch(Base):
     cartons_jaunes: Mapped[int | None] = mapped_column(Integer)
     cartons_rouges: Mapped[int | None] = mapped_column(Integer)
     xg: Mapped[float | None] = mapped_column(Float)
+    npxg: Mapped[float | None] = mapped_column(Float)
     source: Mapped[str | None] = mapped_column(String)
     cree_le: Mapped[datetime] = mapped_column(DateTime, default=maintenant_utc)
     maj_le: Mapped[datetime] = mapped_column(DateTime, default=maintenant_utc)

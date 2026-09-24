@@ -541,3 +541,131 @@ c'est pourquoi le chemin n'a jamais été figé dans le code.
   (règle 7). L'ancien dépôt n'a pas été modifié (règle 1) : `HEAD` sur `main`, ses seuls fichiers
   non suivis datent d'avant T02.
 - Prochaine étape : T05 (ingestion understat, liaison aux matchs, ≥ 99 % de liaison).
+
+## 24/09/2026 — T05 : ingestion understat (xG) (terminée)
+
+**Résultat** : les 18 187 matchs de la base portent un xG — **100,00 % sur les onze saisons**, pour
+un seuil d'acceptation fixé à 99 %. 36 374 lignes de `stats_match` pourvues en `xg`, 36 286 en
+`npxg`. 327 tests verts (242 de T04 + 85 nouveaux).
+
+### Périmètre, tranché avec le propriétaire avant d'écrire
+
+understat publie bien plus que le xG par équipe : npxG, xGA, deep, PPDA, xPts. ARCHITECTURE.md ne
+liste que « xG par équipe » et la règle du projet est de ne pas figer de colonnes avant usage, mais
+les CSV sont sur le disque et une colonne ajoutée plus tard obligerait à tout relire. Décision du
+propriétaire : **`xg` + `npxg`**, rien d'autre. Le xG hors penalty est la seule colonne
+supplémentaire qui change vraiment un modèle de buts — un penalty est un processus différent du jeu
+courant, celui que Dixon-Coles modélise — et T10 pourra régler le mélange buts / xG / npxG en
+validation. `deep`, `ppda` et `xpts` restent dans les CSV.
+
+Pas de colonne `xga` : le xG concédé par une équipe est le `xg` de la ligne adverse du même match,
+que `uq_stats_match_camp` garantit présente.
+
+### Code écrit
+
+| Fichier | Rôle |
+| --- | --- |
+| `ingestion/understat.py` | La tâche T05 : lit, contrôle tout, rattache — ou rien |
+| `migrations/20260924_stats_match_npxg.sql` | `npxg` et ses contraintes sur une base peuplée |
+| `bdd/modeles.py` | `StatsMatch.npxg`, `ck_stats_match_npxg`, `ck_stats_match_xg_positif` |
+| `tests/test_understat.py` | 85 tests, 19 classes |
+| `tests/fixtures/understat/` | 7 jeux d'essai : `sain`, `casse`, `anomalies`, `doublons`, `orphelin`, `sans_equipes`, `retard` |
+
+### La clé de rattachement : logique, et surtout pas la date
+
+Le rattachement se fait sur `(code_fd, saison, club_id_dom, club_id_ext)` — la clé de
+`source_match_id` en T04. Le choix repose sur une mesure, pas sur une intuition : confrontées match
+par match, les deux sources donnent la même heure pour **12 061 matchs** mais divergent d'une heure
+ou plus sur **445**. understat publie en heure locale du pays, football-data en heure britannique.
+Un rattachement par date aurait perdu ces 445 matchs — et un nombre différent à chaque saison, donc
+sans motif repérable.
+
+Les noms passent par `clubs.nom_understat` (règle 10). Les **165 noms** que produisent les CSV
+understat sont tous au référentiel, renseignés depuis T00 : aucun club non résolu.
+
+### T05 ne crée aucun match
+
+C'est la propriété qui structure la tâche. Un match understat sans correspondance en base est
+**signalé, jamais créé** : le créer ici le ferait entrer sans score, sans mi-temps et sans
+statistiques, et `matchs` n'aurait plus une seule source de vérité. Un seul cas sur les 11 saisons —
+`2026/F1 F1-parissg–F1-rennes`, qu'understat publie et que football-data n'a pas encore. T04 le
+prendra quand la source aura suivi.
+
+Symétriquement, une ligne de `stats_match` attendue et absente **arrête la tâche** au lieu d'être
+comblée : T04 en crée toujours deux par match, et une ligne recréée ici n'aurait que des xG.
+
+### Ce que la tâche refuse de subir en silence
+
+- **Contrôle croisé entre les deux fichiers.** `matches.csv` donne le xG du match, `team_matches.csv`
+  le donne par équipe avec le npxG. Les deux doivent coïncider à 1e-4 près. Un désaccord veut dire
+  que le rattachement a apparié deux matchs différents — le seul risque sérieux de cette tâche, et
+  parfaitement muet sans ce contrôle. Zéro désaccord sur les données réelles.
+- **npxG supérieur au xG** : inversion de colonnes. La valeur est écartée, le match gardé, le cas
+  nommé. Le schéma tient le même invariant (`ck_stats_match_npxg`), éprouvé sur la copie de la base.
+- **Matchs à venir.** Le fichier de la saison en cours porte le calendrier complet : 1 646 lignes
+  non jouées sur 19 790, dont les colonnes d'xG valent 0. Les prendre écrirait des zéros là où il
+  n'y a pas de donnée — valeur parfaitement plausible qu'aucune contrainte ne rattraperait.
+- **Invariant de comptage** : `lues == rattachées + sans match + refusées + à venir`.
+
+### Une migration, parce que SQLite ne sait pas ajouter un CHECK
+
+`npxg` arrive sur une table de 36 374 lignes. SQLite sait ajouter une colonne, mais **pas** une
+contrainte `CHECK` sur une table existante : un simple `ADD COLUMN` aurait laissé la vraie base sans
+`ck_stats_match_npxg` ni `ck_stats_match_xg_positif`, alors que les tests — qui partent d'une base
+neuve — auraient été protégés. Exactement l'écart silencieux que ce projet refuse. La migration
+recrée donc la table selon la procédure SQLite, à l'identique du DDL produit par l'ORM.
+
+Éprouvée d'abord sur une **copie hors dépôt** : comptes identiques (36 374 lignes, 500 xG), somme
+des xG identique au centième (772,08), `foreign_key_check` vide, aucune table résiduelle, et les
+deux nouvelles contraintes refusant bien `npxg > xg` et `xg < 0`. Puis appliquée pour de vrai par
+`scripts/appliquer_migrations.py`, qui a pris et vérifié sa sauvegarde (12 680 Ko, 5 tables) avant
+d'écrire.
+
+### Le retard d'understat, et pourquoi rien n'est écrasé
+
+football-data publie `HxG`/`AxG` depuis 2026-27 et va plus vite qu'understat : au moment de T05,
+**44 matchs** de la dernière journée ont un xG chez l'un et rien chez l'autre. `_appliquer` n'écrit
+jamais un `None` par-dessus une valeur existante, si bien que ces 44 matchs gardent le xG de T04.
+C'est ce qui porte 2026-27 à 100 % et non à 82 %. En base, les **88 lignes** encore marquées
+`football-data` seule (44 × 2 camps) sont exactement celles-là.
+
+La colonne `source` liste les sources qui ont contribué, triées : `football-data+understat`. Pas de
+colonne supplémentaire, et un second passage ne duplique rien.
+
+### Deux défauts trouvés par les régressions volontaires, corrigés
+
+- **La protection « un vide n'écrase jamais » n'était pas testée.** La régression qui retire
+  `valeur is not None` n'a d'abord rien fait tomber. Le premier test écrit pour la couvrir ne
+  mordait pas non plus : sur un match **non joué**, c'est `est_joue` qui protège, bien avant
+  `_appliquer`. Le cas discriminant est un match **joué** dont `team_matches.csv` a disparu —
+  il traverse tout le chemin d'écriture, et seul le refus des `None` sauve le npxG déjà en base.
+  Test réécrit sur ce cas : la régression tombe maintenant.
+- **La surveillance des colonnes visait le mauvais fichier.** `npxG` et `deep` vivent dans
+  `team_matches.csv`, jamais dans `matches.csv` : le rapport les annonçait absentes des onze
+  saisons à chaque exécution. Un rapport qui crie tout le temps ne se lit plus, et la vraie
+  disparition serait passée inaperçue. Surveillance déplacée, avec deux tests qui gardent la
+  correction.
+
+### Rangement des données brutes
+
+`data/raw/scraper/data/raw/understat/` remis à plat en `data/raw/understat/` (même arborescence
+dupliquée qu'en T04). Il reste `data/raw/scraper/` avec une copie partielle de football-data :
+**sous-ensemble strict** de `data/raw/football-data/` (vérifié fichier par fichier, 0 fichier
+unique), donc supprimable sans perte — laissé en place, rien n'est supprimé sans demande.
+
+### Vérifications exécutées
+
+- `.venv/bin/pytest -q` → **327 passed in 69.46s**, aucun appel réseau.
+- Tâche lancée pour de vrai sur les 55 dossiers, puis relancée : **0 inséré, 0 mis à jour,
+  36 286 inchangés** — `19790 lues = 18143 rattachées + 1 sans match + 0 refusées + 1646 à venir`.
+- Couverture mesurée saison par saison : **100,00 % partout**, ensemble 18 187/18 187.
+- Contrôles en base : **0** `npxg > xg`, **0** xG négatif, **0** match pourvu sur un seul camp,
+  `foreign_key_check` vide, registre de migrations à jour. Les 88 lignes sans `npxg` sont exactement
+  les 88 lignes de source `football-data` seule.
+- **Cinq régressions volontaires** : matchs à venir pris pour joués (8 tests tombent), `None`
+  écrasant une valeur (1, après correction du test), camps inversés (8), commit avant les contrôles
+  (2, après ajout du test manquant), contrôle croisé retiré (1). Fichier restauré à l'identique
+  (empreinte MD5 vérifiée).
+- Référentiel intact (empreintes de `clubs.csv` et `ligues.csv` inchangées). Rien n'a été committé
+  (règle 7). L'ancien dépôt n'a pas été modifié (règle 1) : `HEAD` toujours sur `main`.
+- Prochaine étape : T06 (ingestion des cotes de clôture dans `cotes_cloture`, usage interne).
