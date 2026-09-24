@@ -6,7 +6,15 @@ T04 — Ingestion football-data.co.uk (5 ligues, 10 saisons + saison en cours)
 Remplit `matchs` (scores, mi-temps, coup d'envoi en UTC, arbitre) et
 `stats_match` (tirs, cadrés, corners, fautes, cartons, et les xG que la source
 publie depuis 2026-27) à partir des CSV déjà présents dans
-`data/raw/football-data/`. **Aucun accès réseau** : le téléchargement est le
+`data/raw/football-data/`.
+
+Pour les xG, cette tâche est un **secours**, pas la source : D03 donne ce rôle
+à understat, et `ingestion/understat.py` (T05) écrit par-dessus. Un `xg` déjà
+en base n'est donc jamais remplacé ici, quelle que soit la valeur du CSV — les
+deux sources sont deux modèles différents (écart moyen 0,32 mesuré en T05), et
+l'ordre des tâches ne doit pas décider laquelle gagne.
+
+**Aucun accès réseau** : le téléchargement est le
 travail de `ingestion/telecharger_football_data.py`, et il n'est pas nécessaire
 pour des saisons terminées — d'autant que le site renvoyait des 503
 systématiques en septembre 2026 (constaté en T02).
@@ -661,11 +669,15 @@ def _synchroniser_stats(
             )
             comptes.inseres += 1
             continue
-        # Les xG venus d'understat (T05) ne sont pas écrasés par une colonne
-        # vide : la source ne les publie pas avant 2026-27.
+        # D03 : understat est la source des xG. Les colonnes `HxG`/`AxG` de
+        # football-data ne servent que de **secours**, sur une ligne encore
+        # vide. Protéger seulement les lignes qu'elle ne pourvoit pas ne
+        # suffisait pas : une relance de T04 après T05 remplaçait les xG
+        # understat par ceux de football-data — un autre modèle, écart moyen
+        # 0,32 mesuré en T05 — et `source` continuait d'annoncer understat.
         a_poser = dict(valeurs)
-        if a_poser.get("xg") is None:
-            a_poser.pop("xg")
+        if existante.xg is not None:
+            a_poser.pop("xg", None)
         a_poser["club_id"] = club_id
         if _appliquer(existante, a_poser):
             existante.maj_le = maintenant_utc()

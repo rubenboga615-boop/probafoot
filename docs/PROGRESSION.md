@@ -669,3 +669,85 @@ unique), donc supprimable sans perte — laissé en place, rien n'est supprimé 
 - Référentiel intact (empreintes de `clubs.csv` et `ligues.csv` inchangées). Rien n'a été committé
   (règle 7). L'ancien dépôt n'a pas été modifié (règle 1) : `HEAD` toujours sur `main`.
 - Prochaine étape : T06 (ingestion des cotes de clôture dans `cotes_cloture`, usage interne).
+
+### Addendum T05 (24/09/2026) — le remplacement des xG, confirmé puis rendu durable
+
+Question posée après coup : *le xG understat remplace-t-il bien celui de football-data dès
+qu'understat publie le match ?* Réponse vérifiée : **oui, mais ça ne tenait pas.**
+
+**Le remplacement a bien lieu.** football-data arrondit ses xG à deux décimales, understat en donne
+cinq ou six : les décimales disent qui a écrit. Sur 2026-27, les 412 lignes marquées
+`football-data+understat` portent **toutes** plus de deux décimales, les 88 marquées
+`football-data` seule en portent **toutes** deux au plus. Aucune ambiguïté.
+
+**Mais une relance de T04 défaisait T05.** `_synchroniser_stats` posait `xg` dès que football-data
+en publiait un, sans regarder ce qui était déjà là. Constaté à blanc : `football_data.py --dry-run
+--saisons 2627` annonçait **412 lignes à mettre à jour** — exactement celles qu'understat venait
+d'écrire. Les deux tâches se disputaient la colonne, et c'est l'ordre d'exécution qui décidait du
+contenu de la base :
+
+| Ordre | xG en base | `source` affiche |
+| --- | --- | --- |
+| T04 puis T05 | understat ✅ | `football-data+understat` |
+| T05 puis T04 | football-data ❌ | `football-data+understat` — **faux** |
+
+La dégradation était muette : même compte de lignes, même couverture, `source` inchangée. Seules
+les décimales l'auraient trahie.
+
+**Correction.** T04 ne remplace plus jamais un `xg` déjà en base : elle n'écrit que sur une ligne
+vide. D03 donne le rôle de source à understat ; football-data n'est qu'un secours pour les matchs
+qu'understat n'a pas encore publiés. Après correction, `football_data.py --dry-run --saisons 2627`
+annonce **0 mis à jour, 500 inchangés**, et sur le périmètre entier 0 mis à jour, 36 374 inchangés.
+L'ordre des deux tâches n'a plus d'effet sur les xG.
+
+Un test de garde l'inscrit (`test_xg_understat_non_ecrase_par_une_valeur_de_la_source`) : il pose
+un xG de forme understat sur un match de 2026-27, relance T04, et vérifie que le `1.88` du CSV ne
+l'a pas repris. Éprouvé — il tombe si la correction est retirée.
+
+## Consigne pour T10 — une seule source de xG
+
+**Le moteur n'utilise que les xG understat.** Ce n'est pas une préférence : les deux sources
+disponibles sont deux modèles différents, et la mesure est faite.
+
+### La mesure (24/09/2026, reproductible)
+
+Sur les **206 matchs** de 2026-27 que football-data et understat pourvoient tous les deux :
+
+| Mesure | Valeur |
+| --- | --- |
+| Écart moyen | **0,3231** xG |
+| Écart médian | 0,2480 |
+| Écart maximum | 2,4424 — Villarreal–La Corogne : 1,20 contre 3,64 |
+| Accord à 0,01 près | **4 matchs sur 206** |
+| Écart supérieur à 0,30 | 80 matchs |
+
+Sur un match moyen à environ 1,4 xG par équipe, un écart moyen de 0,32 est un désaccord de modèle,
+pas un bruit d'arrondi. **La question « prouver par le backtest que les deux sont interchangeables »
+est donc déjà tranchée : elles ne le sont pas.** Ne pas la rouvrir sans une mesure qui contredise
+celle-ci.
+
+### État de la base, et repère des lignes de secours
+
+Les **dix saisons terminées sont à 100 % understat**, homogènes. Seule 2026-27 mêle 412 lignes
+understat et 88 lignes de secours football-data — 0,24 % des 36 374 lignes de `stats_match`, toutes
+sur les 44 matchs de la dernière journée qu'understat n'avait pas encore publiés.
+
+Ces 88 lignes se repèrent ainsi :
+
+```sql
+-- xG venu de football-data, pas d'understat
+WHERE source = 'football-data'   -- équivalent ici : xg IS NOT NULL AND npxg IS NULL
+```
+
+Le second critère est le plus sûr : `npxg` ne vient que d'understat, donc son absence désigne
+exactement une ligne de secours.
+
+**Aucune action n'est prévue sur elles** (décision du propriétaire) : le prochain scrape d'understat
+suivi d'une relance de T05 les remplacera. Si le backtest devait tourner avant, T10 les filtre avec
+la requête ci-dessus plutôt que de mélanger deux échelles sur une même saison.
+
+### Ordre des tâches
+
+T04 puis T05, jamais l'inverse, reste la marche à suivre — c'est celle qui donne aussi les matchs
+avant les xG qui s'y rattachent. Depuis la correction du 24/09/2026, l'inverse ne dégrade plus les
+xG, mais T08 devra tout de même poser cet ordre explicitement.

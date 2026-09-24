@@ -351,6 +351,42 @@ class TestStatsMatch:
         ).all()
         assert anciens and all(valeur is None for valeur in anciens)
 
+    def test_xg_understat_non_ecrase_par_une_valeur_de_la_source(
+        self, url_base, session_lecture
+    ):
+        """Le cas où football-data **a** un xG et la base en a déjà un autre.
+
+        D03 donne le rôle de source des xG à understat ; T04 n'est qu'un
+        secours. Sans cette garde, l'ordre des tâches décidait du contenu de
+        la colonne : T04 après T05 remplaçait les xG understat de 2026-27 par
+        ceux de football-data — deux modèles différents, écart moyen 0,32
+        mesuré en T05 — et `source` continuait d'annoncer understat. La
+        dégradation était donc muette.
+
+        La valeur posée ici a la forme d'un xG understat (cinq décimales) ;
+        celle du CSV, 1.88, a l'arrondi à deux décimales de football-data.
+        """
+        importer(url_base)
+        ligne = session_lecture.scalars(
+            select(StatsMatch)
+            .join(Match, Match.id == StatsMatch.match_id)
+            .where(
+                Match.saison == "2026-2027",
+                Match.club_id_dom == "E0-arsenal",
+                StatsMatch.camp == "dom",
+            )
+        ).one()
+        assert ligne.xg == pytest.approx(1.88), "T04 doit avoir lu HxG"
+        identifiant = ligne.id
+        ligne.xg = 2.04268
+        session_lecture.commit()
+
+        importer(url_base)
+        session_lecture.expire_all()
+        assert session_lecture.get(StatsMatch, identifiant).xg == pytest.approx(
+            2.04268
+        ), "une relance de T04 ne doit pas reprendre la main sur les xG"
+
     def test_xg_understat_non_ecrase_par_une_colonne_vide(
         self, url_base, session_lecture
     ):
