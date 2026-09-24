@@ -20,7 +20,8 @@
 
 ## Arborescence cible
 ```
-ingestion/     football_data.py, understat.py, calendrier.py, referentiel.py
+ingestion/     football_data.py, understat.py, calendrier.py, referentiel.py,
+               api_football.py (client + parseurs), noms_clubs.py (appariement des noms)
 moteur/        features.py, elo.py, dixon_coles.py, marches.py, mi_temps.py
 backtest/      walk_forward.py, mesures.py, rapport.py
 publication/   coupons.py, ia_gemini.py, gel.py
@@ -39,7 +40,7 @@ Nouveau dépôt `probafoot`. Les modules utiles de l'ancien dépôt `pronostic-s
 | Table | Contenu | Règle |
 | --- | --- | --- |
 | ligues | code_fd, slug_understat, api_league_id, nom | Chargée depuis ligues.csv |
-| clubs | club_id, noms par source | Chargée depuis clubs.csv |
+| clubs | club_id, noms par source, api_team_id | Chargée depuis clubs.csv ; `api_team_id` (identifiant API-Football, renseigné pour la saison en cours) est la clé de liaison du calendrier |
 | matchs | match_id, ligue, saison, date_utc, club_dom, club_ext, statut, score final et mi-temps | Clé unique (ligue, date, club_dom, club_ext) |
 | stats_match | tirs, cadrés, corners, cartons, xG par équipe | Liée à matchs |
 | cotes_cloture | Pinnacle et moyenne marché 1N2, O/U 2,5 | Usage interne uniquement, jamais affiché |

@@ -1,0 +1,64 @@
+[
+ {
+  "fixture": {
+   "id": 1390331,
+   "referee": null,
+   "timezone": "UTC",
+   "date": "2026-08-21T20:30:00+02:00",
+   "timestamp": 1787344200,
+   "periods": {"first": null, "second": null},
+   "venue": {"id": 700, "name": "Allianz Arena", "city": "München"},
+   "status": {"long": "Not Started", "short": "NS", "elapsed": null, "extra": null}
+  },
+  "league": {
+   "id": 78,
+   "name": "Bundesliga",
+   "country": "Germany",
+   "season": 2026,
+   "round": "Regular Season - 1",
+   "standings": true
+  },
+  "teams": {
+   "home": {"id": 157, "name": "Bayern München", "winner": null},
+   "away": {"id": 165, "name": "Borussia Dortmund", "winner": null}
+  },
+  "goals": {"home": null, "away": null},
+  "score": {
+   "halftime": {"home": null, "away": null},
+   "fulltime": {"home": null, "away": null},
+   "extratime": {"home": null, "away": null},
+   "penalty": {"home": null, "away": null}
+  }
+ },
+ {
+  "fixture": {
+   "id": 1390332,
+   "referee": "D. Siebert",
+   "timezone": "UTC",
+   "date": "2026-08-22T15:30:00+02:00",
+   "timestamp": 1787412600,
+   "periods": {"first": 1787412600, "second": 1787416200},
+   "venue": {"id": 702, "name": "Signal Iduna Park", "city": "Dortmund"},
+   "status": {"long": "Match Finished", "short": "FT", "elapsed": 90, "extra": null}
+  },
+  "league": {
+   "id": 78,
+   "name": "Bundesliga",
+   "country": "Germany",
+   "season": 2026,
+   "round": "Regular Season - 2",
+   "standings": true
+  },
+  "teams": {
+   "home": {"id": 165, "name": "Borussia Dortmund", "winner": true},
+   "away": {"id": 157, "name": "Bayern München", "winner": false}
+  },
+  "goals": {"home": 2, "away": 1},
+  "score": {
+   "halftime": {"home": 0, "away": 1},
+   "fulltime": {"home": 2, "away": 1},
+   "extratime": {"home": null, "away": null},
+   "penalty": {"home": null, "away": null}
+  }
+ }
+]
