@@ -33,6 +33,8 @@ Chaque décision a une raison. Pour en changer, l'écrire ici avec la date.
 | D27 | Contenu des offres validé (Q4) : voir tableau ci-dessous | Validé par le propriétaire |
 | D28 | Budget serveur : plafond 5 000 FCFA par mois pendant le lancement gratuit ; petit serveur Linux en Europe (1 vCPU, 2 Go de RAM) et un nom de domaine (Q8) | Validé par le propriétaire |
 | D29 | Nom de l'application : ProbaFoot (Q9). Vérifier la disponibilité sur Google Play, en nom de domaine et sur les réseaux sociaux avant tout dépôt | Choix du propriétaire ; aucune application de ce nom trouvée lors d'une première recherche |
+| D30 | Socle technique repris de l'ancien dépôt : SQLAlchemy (ORM) pour la base, pandas, numpy et scipy pour le moteur. Chaque bibliothèque reste ajoutée par la tâche qui l'utilise en premier | Rend la reprise des modules possible au lieu d'une réécriture ; D13 prévoit PostgreSQL en production, l'ORM évite d'y réécrire le SQL. Vérifié le 24/09/2026 : les quatre s'installent et tournent sous Python 3.14 en proot |
+| D31 | Référence de l'ancien dépôt : la branche `claude/audit-lecture-seule-s5yd7b`, et non `main` | `main` est 69 commits en arrière et n'a ni Dixon-Coles entraîné, ni backtest, ni les cinq correctifs de fuite de données. Constaté en T02 |
 
 ## D27 — Contenu des offres
 | Contenu | Gratuit | Standard 1 500 FCFA | Premium 3 000 FCFA |
