@@ -56,3 +56,19 @@
   API-Football et d'appariement ayant été perdues (seuls les `.pyc` subsistent), seuls leurs deux
   enseignements ont été repris.
 - Prochaine étape : T01 (arborescence complète, `requirements.txt`, `.gitignore`).
+
+## Idées v2
+
+**Collecte API-Football déjà sur le disque** (`data/raw/api-football/stats/`, hors Git) :
+- 18 championnats, 68 015 matchs de 2016 à 2026.
+- Statistiques détaillées — 18 types, match entier **et chaque mi-temps séparément**, dont les xG — pour
+  13 808 matchs seulement, de 2024-25 à 2026-27.
+- Les fichiers portent les noms d'équipes mais pas d'identifiants ; la liaison se fait par `fixture id`.
+
+Usages envisagés :
+- xG des championnats qu'understat ne couvre pas, pour l'extension à d'autres ligues.
+- Statistiques par mi-temps pour alimenter le modèle de 1re mi-temps.
+- Corners et cartons.
+- Contrôle croisé des xG understat.
+
+Hors périmètre de la version 1.
