@@ -427,3 +427,117 @@ travail, valeur de `.env.example`, ignorée par Git — elle est légitime. Deux
 - Rien n'a été committé (règle 7). L'ancien dépôt n'a pas été modifié (règle 1) : lecture par
   `git show` sur la branche de D31, `HEAD` toujours sur `main`.
 - Prochaine étape : T04 (ingestion football-data des 5 ligues, 10 saisons + saison en cours).
+
+## 24/09/2026 — T04 : ingestion football-data (terminée)
+
+**Résultat** : les 11 saisons (2016-17 à 2026-27) des 5 ligues sont en base — **18 187 matchs** et
+**36 374 lignes de statistiques d'équipe**, soit exactement deux par match — chargés par un script
+idempotent, sans un seul accès réseau. 242 tests verts (165 de T03 + 77 nouveaux).
+
+### Périmètre
+
+ROADMAP dit « 10 saisons + saison en cours » : ce sont 2016-17 à 2025-26 plus 2026-27, déjà sur le
+disque depuis T02. **Aucun téléchargement** : les saisons terminées ne bougent plus, et
+football-data.co.uk renvoyait des 503 systématiques en septembre (constaté en T02).
+`ingestion/telecharger_football_data.py` reste le seul module qui parle au réseau ; l'ingestion lit
+le disque, ce qui rend la tâche entièrement rejouable et testable hors ligne.
+
+### Code écrit
+
+| Fichier | Rôle |
+| --- | --- |
+| `ingestion/football_data.py` | La tâche T04 : lit, contrôle tout, puis écrit — ou rien |
+| `bdd/modeles.py` | Table `stats_match` ajoutée (les 8 tables restantes attendent leur tâche) |
+| `tests/test_football_data.py` | 77 tests, 16 classes |
+| `tests/fixtures/football_data/` | Jeux d'essai : `sain/`, `casse/`, `anomalies/` |
+
+### `stats_match` : une ligne par équipe, pas par match
+
+Pas de colonnes `tirs_dom` / `tirs_ext`, mais deux lignes portant `camp` et `club_id`. C'est la
+forme qu'annonce ARCHITECTURE.md, c'est celle qu'attend le rattachement understat de T05 (par
+`(club, jour, camp)`), et c'est la seule où « les tirs cadrés de ce club sur ses cinq derniers
+matchs » se lit sans distinguer le camp à chaque fois. Deux contraintes d'unicité la tiennent :
+`(match_id, camp)` et `(match_id, club_id)` — un match a exactement deux lignes, et jamais le même
+club deux fois.
+
+`xg` est nullable et reste vide pour l'historique : la source ne publie `HxG`/`AxG` que depuis
+2026-27. En base, exactement **500 valeurs**, soit les 250 matchs de la saison en cours. T05 la
+remplira pour le reste depuis understat (D03) — et l'ingestion **n'écrase jamais un xG existant par
+une colonne vide**, sans quoi le prochain passage de T04 effacerait le travail de T05.
+
+### Le fuseau de football-data : une heure d'écart, silencieuse
+
+La source publie l'heure du coup d'envoi en **heure locale britannique**, pas en UTC. Rien ne le
+dit dans ses fichiers. Vérifié en confrontant les 250 matchs de 2026-27 au calendrier API-Football
+de T00 : tous à exactement +1 h, l'heure d'été britannique en août et septembre. Non corrigé,
+c'était une heure de décalage sur tout l'historique récent — et la bascule d'octobre l'aurait fait
+disparaître par intermittence, le pire cas pour s'en apercevoir. Un test compare désormais les deux
+sources ; la régression volontaire correspondante le fait tomber.
+
+Cas limite : **2016-17 à 2018-19 n'ont pas de colonne `Time`**. La date est alors stockée à
+**00:00 UTC sans conversion de fuseau** — convertir minuit depuis Londres reculerait la date d'un
+jour pendant tout l'été, bien pire qu'une heure inconnue. Aucun match de ces championnats ne débute
+à minuit pile : `00:00:00` se lit donc comme « heure inconnue » sans colonne supplémentaire. En
+base : **5 478 matchs**, soit exactement 3 × 1 826, les trois saisons concernées.
+
+### Ce que la tâche refuse de subir en silence
+
+- **Colonnes disparues** (repris de `collectors/football_data/parser.py` de l'ancien dépôt) : 18
+  colonnes surveillées. Une absence déjà comprise est affichée avec son explication ; toute autre
+  ressort marquée `← INATTENDU`. Une colonne qui change de nom chez la source est sinon une perte
+  sèche invisible.
+- **Invariant de comptage** (repris de `pipelines/historical_import.py`) :
+  `lues == insérées + mises à jour + inchangées + refusées + ignorées`, contrôlé à la lecture puis
+  à l'écriture. Faux = la tâche s'arrête.
+- **Valeurs invraisemblables** : plus de tirs cadrés que de tirs, c'est une inversion de colonnes.
+  Les deux valeurs sont écartées, le match est importé quand même, et le cas est **nommé** dans le
+  rapport. Un seul sur 18 187 : `2122/E0`, Newcastle–West Ham. Le schéma tient le même invariant
+  (`ck_stats_match_tirs_cadres`) : la régression volontaire qui retire le contrôle applicatif fait
+  lever la contrainte SQL sur cette ligne réelle.
+- **Écarts de calendrier** : 6 signalés, tous expliqués — `1920/F1` à 279 matchs (Ligue 1 arrêtée
+  pour le Covid) et les 5 fichiers de 2026-27, saison en cours.
+
+### Les trois propriétés de T03, reprises
+
+1. **Rien n'est écrit si quelque chose ne va pas.** Tout est lu et contrôlé avant la première
+   écriture, et toutes les anomalies sortent ensemble. `--tolerer` importe en écartant les lignes
+   fautives.
+2. **Idempotent.** Une ligne n'est écrite que si une valeur diffère réellement, et `maj_le` ne
+   bouge qu'alors. `source_match_id` est construit sur la clé logique
+   (`saison:ligue:dom:ext`), jamais sur le numéro de ligne : un match reporté ou un fichier de
+   saison en cours qui grossit ne change pas d'identité.
+3. **Rien n'est supprimé.** Un match en base et absent des fichiers est compté et signalé, jamais
+   effacé — et la comparaison est limitée au périmètre réellement lu, pour que `--saisons 2627` ne
+   déclare pas « absentes » les dix autres saisons.
+
+### Rangement des données brutes
+
+Les CSV étaient sous `data/raw/football-data/data/raw/football-data/<saison>/`, arborescence
+dupliquée par l'extraction d'une archive (antérieure à T04). Remis à plat : les 199 fichiers sont
+maintenant directement sous `data/raw/football-data/`. `localiser_racine` descend tant qu'un seul
+sous-dossier s'offre et qu'aucune saison n'est visible, donc les deux rangements fonctionnent —
+c'est pourquoi le chemin n'a jamais été figé dans le code.
+
+### Vérifications exécutées
+
+- `.venv/bin/pytest -q` → **242 passed in 47.71s**, aucun appel réseau.
+- Tâche lancée pour de vrai sur les 55 fichiers du périmètre, puis relancée au chemin par défaut :
+  **0 inséré, 0 mis à jour, 18 187 inchangés** — `18187 lues = 0 + 0 + 18187 + 0 refusées + 0
+  ignorées`.
+- Contrôles en base : 36 374 stats = 2 × 18 187, **0 match** sans ses deux lignes, **0** `club_id`
+  orphelin (règle 10), **0** incohérence entre `camp` et le club du match, **0** mi-temps
+  supérieure au score final, **0** tirs cadrés supérieurs aux tirs, **0** match d'un club contre
+  lui-même. Répartition par ligue : D1 3 096, E0 3 850, F1 3 522, I1 3 850, SP1 3 869 — les creux
+  correspondent aux Ligue 1 et Bundesliga à 18 clubs et au Covid.
+- **Quatre régressions volontaires**, comme en T01 à T03 : fuseau source ramené à UTC (6 tests
+  tombent, dont la confrontation à API-Football), écriture systématique au lieu des seules
+  différences (4 tests, dont `maj_le`), contrôle de plausibilité désactivé (4 tests, plus la
+  contrainte SQL sur la ligne réelle), synchronisation commitée avant le contrôle des refus (2
+  tests). Fichier restauré à l'identique ensuite (empreinte MD5 vérifiée).
+  - Une cinquième tentative n'a **rien** fait tomber : un `commit` placé avant toute écriture en
+    attente est un no-op, pas une régression. Déplacé après `synchroniser`, il a mordu. À retenir :
+    une régression qui ne casse rien doit d'abord être suspectée d'être mal posée.
+- Référentiel intact (empreintes de `clubs.csv` et `ligues.csv` inchangées). Rien n'a été committé
+  (règle 7). L'ancien dépôt n'a pas été modifié (règle 1) : `HEAD` sur `main`, ses seuls fichiers
+  non suivis datent d'avant T02.
+- Prochaine étape : T05 (ingestion understat, liaison aux matchs, ≥ 99 % de liaison).

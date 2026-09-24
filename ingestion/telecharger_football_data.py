@@ -9,28 +9,46 @@ Récupère les statistiques de match des N dernières saisons pour les
 Source  : https://www.football-data.co.uk/mmz4281/<SAISON>/<DIV>.csv
 Sortie  : <out>/<SAISON>/<DIV>.csv  + un manifest.csv récapitulatif
 
+**Ce script n'est pas sur le chemin de l'ingestion** : `ingestion/football_data.py`
+(T04) lit les fichiers déjà présents sur le disque et n'appelle jamais le
+réseau. Une saison terminée ne change plus ; seule la saison en cours mérite
+d'être rafraîchie, et le site renvoyait des 503 systématiques en septembre 2026.
+
+Hérité de l'ancien dépôt, renommé et complété en T04 (il s'appelait
+`download_football_data-2.py`, un nom qu'aucun test ne pouvait importer). Ce que
+l'audit de T02 retenait du `downloader.py` de l'ancien dépôt et qui manquait
+ici : l'écriture atomique et le refus des réponses vides.
+
 Usage :
-    python3 download_football_data.py                      # 10 saisons + saison en cours
-    python3 download_football_data.py --seasons 15
-    python3 download_football_data.py --leagues E0 SP1
-    python3 download_football_data.py --dry-run            # liste les URL sans télécharger
-    python3 download_football_data.py --force              # re-télécharge tout
-    python3 download_football_data.py --out data/raw/football-data
+    python3 ingestion/telecharger_football_data.py               # 10 saisons + en cours
+    python3 ingestion/telecharger_football_data.py --seasons 15
+    python3 ingestion/telecharger_football_data.py --leagues E0 SP1
+    python3 ingestion/telecharger_football_data.py --dry-run     # liste les URL
+    python3 ingestion/telecharger_football_data.py --force       # re-télécharge tout
+    python3 ingestion/telecharger_football_data.py --out data/raw/football-data
 """
 
 from __future__ import annotations
 
 import argparse
 import csv
+import os
 import sys
+import tempfile
 import time
 from datetime import date
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from ingestion.football_data import saison_en_cours  # noqa: E402
+
 try:
     import requests
 except ImportError:  # pragma: no cover
-    sys.exit("Module manquant : pip install requests")
+    # Absence signalée au lancement, pas à l'import : le module doit rester
+    # importable par la suite de tests, qui n'appelle jamais le réseau.
+    requests = None
 
 
 BASE_URL = "https://football-data.co.uk/mmz4281"  # sans www : le www redirige en 302
@@ -66,9 +84,15 @@ def season_code(start_year: int) -> str:
 
 
 def current_season_start(today: date | None = None) -> int:
-    """Année de début de la saison en cours. Une saison démarre en juillet."""
-    today = today or date.today()
-    return today.year if today.month >= 7 else today.year - 1
+    """Année de début de la saison en cours. Une saison démarre en juillet.
+
+    La règle est celle de `ingestion.football_data.saison_en_cours` : un seul
+    endroit décide quand une saison commence, sinon les deux définitions
+    finissent par diverger d'un mois sans que rien ne le signale.
+    """
+    code = saison_en_cours(today)
+    debut = int(code[:2])
+    return 1900 + debut if debut >= 90 else 2000 + debut
 
 
 def build_seasons(n: int, include_current: bool, today: date | None = None) -> list[str]:
@@ -88,11 +112,34 @@ def build_seasons(n: int, include_current: bool, today: date | None = None) -> l
 # Téléchargement
 # --------------------------------------------------------------------------
 def looks_like_csv(content: bytes) -> bool:
-    """Le serveur renvoie parfois une page HTML 404 avec un code 200."""
-    head = content[:200].lstrip().lower()
+    """Le serveur renvoie parfois une page HTML 404, ou du vide, avec un code 200.
+
+    Une réponse vide écrasant un fichier valide était la perte la plus bête
+    possible : elle passait pour un téléchargement réussi.
+    """
+    if not content or not content.strip():
+        return False
+    head = content[:200].lstrip().lower().lstrip(b"\xef\xbb\xbf")
     if head.startswith(b"<"):
         return False
     return head.startswith(b"div,") or b"hometeam" in content[:500].lower()
+
+
+def ecrire_atomique(destination: Path, contenu: bytes) -> None:
+    """Écrit le fichier en entier, ou pas du tout.
+
+    Une écriture interrompue laisserait un CSV tronqué que l'ingestion lirait
+    sans broncher : elle y verrait une saison incomplète, pas un fichier abîmé.
+    """
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    descripteur, provisoire = tempfile.mkstemp(dir=destination.parent, suffix=".tmp")
+    try:
+        with os.fdopen(descripteur, "wb") as fichier:
+            fichier.write(contenu)
+        os.replace(provisoire, destination)
+    except BaseException:
+        Path(provisoire).unlink(missing_ok=True)
+        raise
 
 
 def fetch(session: requests.Session, url: str) -> bytes | None:
@@ -179,8 +226,7 @@ def download_all(
                 )
                 continue
 
-            season_dir.mkdir(parents=True, exist_ok=True)
-            dest.write_bytes(content)
+            ecrire_atomique(dest, content)
             rows = max(content.count(b"\n") - 1, 0)
             print(f"OK ({rows} matchs, {len(content) // 1024} Ko)")
             manifest.append(
@@ -225,6 +271,10 @@ def main() -> int:
     p.add_argument("--dry-run", action="store_true",
                    help="afficher les URL sans rien télécharger")
     args = p.parse_args()
+
+    if requests is None and not args.dry_run:
+        print("Module manquant : pip install requests", file=sys.stderr)
+        return 2
 
     unknown = [d for d in args.leagues if d not in LEAGUES]
     if unknown:

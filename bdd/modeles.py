@@ -2,11 +2,11 @@
 Schéma de la base (docs/ARCHITECTURE.md)
 ========================================
 
-Trois tables pour l'instant : `ligues` et `clubs`, chargées depuis
-`data/reference/` par `ingestion/charger_referentiel.py` (T03), et `matchs`,
-que remplira T04. Les neuf autres tables d'ARCHITECTURE.md sont déclarées par la
-tâche qui les remplit : on ne fige pas des colonnes avant de connaître leur
-usage réel.
+Quatre tables pour l'instant : `ligues` et `clubs`, chargées depuis
+`data/reference/` par `ingestion/charger_referentiel.py` (T03), puis `matchs` et
+`stats_match`, remplies par `ingestion/football_data.py` (T04). Les huit autres
+tables d'ARCHITECTURE.md sont déclarées par la tâche qui les remplit : on ne
+fige pas des colonnes avant de connaître leur usage réel.
 
 Ce qui est repris de `app/models.py` de l'ancien dépôt : les contraintes
 d'unicité déclarées sur les **clés logiques**, pas seulement sur les
@@ -27,6 +27,7 @@ from sqlalchemy import (
     Boolean,
     CheckConstraint,
     DateTime,
+    Float,
     ForeignKey,
     Index,
     Integer,
@@ -157,5 +158,54 @@ class Match(Base):
     arbitre: Mapped[str | None] = mapped_column(String)
     source: Mapped[str | None] = mapped_column(String)
     source_match_id: Mapped[str | None] = mapped_column(String)
+    cree_le: Mapped[datetime] = mapped_column(DateTime, default=maintenant_utc)
+    maj_le: Mapped[datetime] = mapped_column(DateTime, default=maintenant_utc)
+
+
+class StatsMatch(Base):
+    """Statistiques d'une équipe sur un match. Remplie par T04 et complétée par T05.
+
+    **Une ligne par équipe**, et non une ligne par match avec des colonnes
+    `_dom` et `_ext` : c'est la forme qu'annonce ARCHITECTURE.md (« par
+    équipe »), c'est celle qu'attend le rattachement understat de T05 (par
+    `(club, jour, camp)`), et c'est la seule où « les tirs cadrés de ce club sur
+    ses cinq derniers matchs » se lit sans distinguer le camp à chaque fois.
+
+    `xg` est nullable et reste vide pour l'historique : football-data ne publie
+    les colonnes `HxG`/`AxG` que depuis la saison 2026-27. T05 remplira le reste
+    depuis understat (D03), dans cette même colonne.
+    """
+
+    __tablename__ = "stats_match"
+    __table_args__ = (
+        # Un match a exactement deux lignes, une par camp. La seconde contrainte
+        # interdit en plus qu'un même club apparaisse deux fois sur un match.
+        UniqueConstraint("match_id", "camp", name="uq_stats_match_camp"),
+        UniqueConstraint("match_id", "club_id", name="uq_stats_match_club"),
+        CheckConstraint("camp IN ('dom', 'ext')", name="ck_stats_match_camp"),
+        # Une inversion de colonnes dans un CSV source se voit ici, et pas trois
+        # mois plus tard dans les features (même raison que `ck_matchs_mi_temps_*`).
+        CheckConstraint(
+            "tirs_cadres IS NULL OR tirs IS NULL OR tirs_cadres <= tirs",
+            name="ck_stats_match_tirs_cadres",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    match_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("matchs.id"), nullable=False, index=True
+    )
+    club_id: Mapped[str] = mapped_column(
+        String, ForeignKey("clubs.club_id"), nullable=False, index=True
+    )
+    camp: Mapped[str] = mapped_column(String, nullable=False)
+    tirs: Mapped[int | None] = mapped_column(Integer)
+    tirs_cadres: Mapped[int | None] = mapped_column(Integer)
+    corners: Mapped[int | None] = mapped_column(Integer)
+    fautes: Mapped[int | None] = mapped_column(Integer)
+    cartons_jaunes: Mapped[int | None] = mapped_column(Integer)
+    cartons_rouges: Mapped[int | None] = mapped_column(Integer)
+    xg: Mapped[float | None] = mapped_column(Float)
+    source: Mapped[str | None] = mapped_column(String)
     cree_le: Mapped[datetime] = mapped_column(DateTime, default=maintenant_utc)
     maj_le: Mapped[datetime] = mapped_column(DateTime, default=maintenant_utc)
