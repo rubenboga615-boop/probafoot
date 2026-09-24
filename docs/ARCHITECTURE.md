@@ -20,7 +20,9 @@
 
 ## Arborescence cible
 ```
+bdd/           config.py (.env), session.py (moteur SQLAlchemy), modeles.py (schéma)
 ingestion/     football_data.py, understat.py, calendrier.py, referentiel.py,
+               charger_referentiel.py (ligues.csv et clubs.csv en base),
                api_football.py (client + parseurs), noms_clubs.py (appariement des noms)
 moteur/        features.py, elo.py, dixon_coles.py, marches.py, mi_temps.py
 backtest/      walk_forward.py, mesures.py, rapport.py
@@ -28,6 +30,9 @@ publication/   coupons.py, ia_gemini.py, gel.py
 api/           main.py, routes/, auth.py, abonnements.py
 front/         index.html, css/, js/, manifest.json, service-worker.js
 jobs/          quotidien.py, apres_match.py (appelés par cron)
+scripts/       appliquer_migrations.py (sauvegarde vérifiée obligatoire)
+migrations/    changements de schéma d'une base déjà peuplée (le schéma initial
+               vient de l'ORM, pas d'une migration)
 data/raw/      données brutes téléchargées (hors Git si volumineuses)
 data/reference/ clubs.csv, ligues.csv (dans Git)
 reports/       rapports de backtest
@@ -39,9 +44,9 @@ Nouveau dépôt `probafoot`. Les modules utiles de l'ancien dépôt `pronostic-s
 ## Base de données (tables principales)
 | Table | Contenu | Règle |
 | --- | --- | --- |
-| ligues | code_fd, slug_understat, api_league_id, nom | Chargée depuis ligues.csv |
-| clubs | club_id, noms par source, api_team_id | Chargée depuis clubs.csv ; `api_team_id` (identifiant API-Football, renseigné pour la saison en cours) est la clé de liaison du calendrier |
-| matchs | match_id, ligue, saison, date_utc, club_dom, club_ext, statut, score final et mi-temps | Clé unique (ligue, date, club_dom, club_ext) |
+| ligues | code_fd (clé), slug_understat, api_league_id, nom, pays, equipes, matchs_saison | Chargée depuis ligues.csv par `ingestion/charger_referentiel.py` |
+| clubs | club_id (clé), code_fd, noms par source, api_team_id, saisons, statut, saison_courante | Chargée depuis clubs.csv ; `api_team_id` (identifiant API-Football, renseigné pour la saison en cours) est la clé de liaison du calendrier. Les trois noms par source sont uniques : ce sont les clés de jointure de T04 et T05 |
+| matchs | id, code_fd, saison, date_utc, club_id_dom, club_id_ext, statut, score final et mi-temps, arbitre, source | Clé unique (ligue, **saison**, club_dom, club_ext) — et non la date : dans ces cinq championnats une paire domicile/extérieur ne se rencontre qu'une fois par saison, alors que l'heure (parfois le jour) du coup d'envoi change couramment. Avec la date dans la clé, un match reporté entrerait deux fois et l'idempotence de l'ingestion tomberait en silence. Décidé en T03 |
 | stats_match | tirs, cadrés, corners, cartons, xG par équipe | Liée à matchs |
 | cotes_cloture | Pinnacle et moyenne marché 1N2, O/U 2,5 | Usage interne uniquement, jamais affiché |
 | predictions_brutes | probabilités calculées par marché, version du modèle, date de calcul | Recalculable |
@@ -60,6 +65,9 @@ Nouveau dépôt `probafoot`. Les modules utiles de l'ancien dépôt `pronostic-s
 | 23:00 chaque jour | Sauvegarde | Export de la base hors du serveur |
 
 Chaque tâche indique la fraîcheur des données (date du dernier match intégré). Si les statistiques d'un club ont plus de 10 jours de retard sur son dernier match joué, la prédiction est marquée « données incomplètes » et n'entre pas dans les coupons.
+
+## Changements de schéma
+Le schéma initial est créé par l'ORM (`bdd.session.creer_tables`). Sur une base déjà peuplée, tout changement passe par `scripts/appliquer_migrations.py` : sauvegarde prise **et relue** (`PRAGMA integrity_check`) avant la première écriture, registre `schema_migrations` pour ne jamais rejouer une migration, `--etat` et `--simuler` pour regarder sans écrire.
 
 ## Sécurité
 - Secrets dans `.env` sur le serveur, jamais dans Git.

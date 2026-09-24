@@ -12,6 +12,7 @@ __pycache__/
 # Données brutes téléchargées et bases locales
 data/raw/
 data/*.db
+data/backups/
 *.sqlite
 
 # Journaux

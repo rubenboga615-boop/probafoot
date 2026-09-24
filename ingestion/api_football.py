@@ -64,17 +64,17 @@ class TransitoireError(ApiFootballError):
 def charger_env(chemin: Path | None = None) -> None:
     """Charge les variables de .env dans l'environnement, sans les écraser.
 
+    L'analyse du fichier vit dans `bdd.config.lire_env` depuis T03 : un seul
+    endroit décide de ce qu'est une ligne de `.env`. Le `setdefault` reste ici,
+    car ce module a besoin de la variable dans l'environnement du processus,
+    alors que `bdd.config` se contente de la lire.
+
     Aucun secret n'est écrit dans le code ni dans Git (règle 8).
     """
-    chemin = chemin or Path(__file__).resolve().parent.parent / ".env"
-    if not chemin.exists():
-        return
-    for ligne in chemin.read_text(encoding="utf-8").splitlines():
-        ligne = ligne.strip()
-        if not ligne or ligne.startswith("#") or "=" not in ligne:
-            continue
-        cle, _, valeur = ligne.partition("=")
-        os.environ.setdefault(cle.strip(), valeur.strip())
+    from bdd.config import lire_env
+
+    for cle, valeur in lire_env(chemin).items():
+        os.environ.setdefault(cle, valeur)
 
 
 def _classer_erreurs(erreurs: Any) -> ApiFootballError:

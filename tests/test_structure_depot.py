@@ -18,6 +18,7 @@ RACINE = Path(__file__).resolve().parent.parent
 
 PAQUETS = [
     "ingestion",
+    "bdd",
     "moteur",
     "backtest",
     "publication",
@@ -28,6 +29,8 @@ PAQUETS = [
 
 DOSSIERS = PAQUETS + [
     "tests",
+    "scripts",
+    "migrations",
     "front",
     "front/css",
     "front/js",
@@ -46,7 +49,15 @@ IGNORES_OBLIGATOIRES = {
 }
 
 # Fichiers dont l'ignorance doit être vérifiée par Git lui-même.
-CHEMINS_IGNORES = [".env", ".env.local", "data/raw/exemple.json", "data/local.db"]
+CHEMINS_IGNORES = [
+    ".env",
+    ".env.local",
+    "data/raw/exemple.json",
+    "data/local.db",
+    # Les sauvegardes prises par scripts/appliquer_migrations.py : le motif
+    # `data/*.db` ne couvre pas un sous-dossier.
+    "data/backups/base_avant_migrations_20260924_120000.db",
+]
 
 
 def _lignes(nom: str) -> list[str]:
@@ -155,6 +166,9 @@ def test_env_example_declare_toutes_les_variables_lues() -> None:
         texte = source.read_text(encoding="utf-8")
         lues |= set(re.findall(r"os\.environ(?:\.get)?\(\s*[\"']([A-Z0-9_]+)[\"']", texte))
         lues |= set(re.findall(r"os\.getenv\(\s*[\"']([A-Z0-9_]+)[\"']", texte))
+        # `bdd/config.py` lit l'environnement par un dictionnaire injecté, pour
+        # rester testable : ses accès passent par un appel `valeur("CLE", ...)`.
+        lues |= set(re.findall(r"valeur\(\s*[\"']([A-Z0-9_]+)[\"']", texte))
 
     manquantes = lues - declarees
     assert not manquantes, f"variables lues par le code mais absentes de .env.example : {manquantes}"

@@ -15,8 +15,10 @@ from pathlib import Path
 
 from tests.conftest import (
     BASE_DE_TEST,
+    BASES_AVANT_LA_SUITE,
     RACINE,
     REFERENCE,
+    bases_apparues,
     chemin_de_base,
     empreinte_du_referentiel,
     est_base_du_depot,
@@ -37,10 +39,28 @@ def test_database_url_pointe_sur_la_base_de_test() -> None:
     assert chemin_de_base(os.environ["DATABASE_URL"]) == BASE_DE_TEST.resolve()
 
 
-def test_aucune_base_creee_dans_le_depot() -> None:
-    """Aucun fichier de base ne doit apparaître dans data/."""
-    bases = sorted(p.name for p in (RACINE / "data").glob("*.db"))
-    assert bases == [], f"bases trouvées dans data/ : {bases}"
+def test_base_locale_legitime_non_signalee(tmp_path: Path) -> None:
+    """La base de travail présente avant la suite n'est pas une anomalie.
+
+    `data/local.db` (valeur de `.env.example`, ignorée par Git) est créée par
+    `ingestion/charger_referentiel.py` sur la machine du développeur : le
+    critère du garde-fou est la nouveauté, pas l'absence.
+    """
+    (tmp_path / "local.db").touch()
+    assert bases_apparues({"local.db"}, tmp_path) == []
+
+
+def test_base_creee_pendant_la_suite_signalee(tmp_path: Path) -> None:
+    """Une base apparue pendant la suite est nommée."""
+    (tmp_path / "local.db").touch()
+    (tmp_path / "essai.db").touch()
+    assert bases_apparues({"local.db"}, tmp_path) == ["essai.db"]
+
+
+def test_releve_de_depart_couvre_la_base_locale() -> None:
+    """Le relevé d'avant la suite reflète bien le dossier `data/` du dépôt."""
+    presentes = {p.name for p in (RACINE / "data").glob("*.db")}
+    assert BASES_AVANT_LA_SUITE <= presentes
 
 
 # ── Le détecteur de base du dépôt ────────────────────────────────────

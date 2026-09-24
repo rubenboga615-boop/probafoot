@@ -307,3 +307,123 @@ d'un coup. Le dépôt a ensuite été restauré (empreinte de `clubs.csv` identi
 - L'ancien dépôt n'a pas été modifié (règle 1) : travail sur un clone, `HEAD` toujours sur `main`,
   working tree inchangé. Rien n'a été committé (règle 7).
 - Prochaine étape : T03 (charger ligues.csv et clubs.csv en base).
+
+## 24/09/2026 — T03 : le référentiel en base (terminée)
+
+**Résultat** : la base existe. `ligues.csv` et `clubs.csv` y sont chargés — 5 ligues, 165 clubs,
+dont les 96 de la saison en cours avec leur `api_team_id` — par un script idempotent qui refuse
+d'écrire quoi que ce soit si le référentiel est douteux. 165 tests verts.
+
+### Périmètre, tranché avec le propriétaire avant d'écrire
+
+Trois décisions, parce que ROADMAP.md et le tableau d'audit de T02 ne disaient pas la même chose :
+
+- **Schéma** : `ligues` et `clubs` (ROADMAP) **plus `matchs`**, la table qu'attend T04, et rien de
+  plus. Le tableau d'audit prévoyait les 12 tables d'ARCHITECTURE.md d'un coup ; on ne fige pas les
+  colonnes de `coupons` ou `abonnements` avant de connaître leur usage. Les 9 autres tables seront
+  déclarées par la tâche qui les remplit.
+- **Configuration** : un module maison de 120 lignes en bibliothèque standard, pas
+  `pydantic-settings` comme l'ancien dépôt. D30 n'autorise que SQLAlchemy, pandas, numpy et scipy,
+  et `pydantic-core` est une roue Rust dont l'installation n'est pas garantie sous Python 3.14 en
+  proot. Seule dépendance ajoutée : **SQLAlchemy 2.0.54** (installée et vérifiée).
+- **Migrations** : le lanceur de l'ancien dépôt est repris **maintenant**, parce que c'est cette
+  tâche qui fait naître la base, donc le moment où la règle « aucune écriture de schéma sans
+  sauvegarde vérifiée » doit exister.
+
+### Code écrit
+
+| Fichier | Rôle |
+| --- | --- |
+| `bdd/config.py` | `.env` puis l'environnement, qui gagne toujours. `DATABASE_URL` vide = erreur, pas repli |
+| `bdd/session.py` | Moteur, sessions, `creer_tables`, et le listener `PRAGMA foreign_keys=ON` |
+| `bdd/modeles.py` | Tables `ligues`, `clubs`, `matchs` |
+| `ingestion/charger_referentiel.py` | La tâche T03 : contrôle, puis chargement idempotent |
+| `scripts/appliquer_migrations.py` + `migrations/` | Changements de schéma d'une base peuplée |
+
+**Le moteur est construit à l'appel, pas à l'import.** L'ancien `app/database.py` créait le sien au
+chargement du module, ce qui figeait l'URL de la base : le garde-fou de `conftest.py` n'aurait rien
+pu forcer, et chaque test aurait écrit dans la base de travail de la machine.
+
+### Ce que la base refuse désormais elle-même
+
+L'idempotence de l'ancien dépôt reposait sur un `SELECT` applicatif avant écriture, sans filet.
+Ici les contraintes sont déclarées sur les **clés logiques** :
+
+- `clubs.nom_football_data` et `clubs.nom_understat` sont **uniques** : ce sont les clés de
+  jointure de T04 et T05, et un doublon rendrait la jointure ambiguë — l'ambiguïté se résolvant en
+  silence au premier arrivé. Vérifié : aucun doublon sur les 165 lignes, même toutes ligues confondues.
+- `api_team_id` unique, mais NULL répétable : les 69 clubs hors saison en cours n'en ont pas (D04).
+- une équipe ne peut pas jouer contre elle-même, et les buts de mi-temps ne peuvent pas dépasser le
+  score final (une inversion de colonnes dans un CSV source se verrait là, pas trois mois plus tard
+  dans les marchés de mi-temps).
+- **Mesuré** : `PRAGMA foreign_keys` vaut `0` par défaut sur ce SQLite. Sans le listener repris de
+  l'ancien dépôt, les clés étrangères du schéma ne seraient que de la documentation. Deux tests le
+  prouvent en insérant un club dans une ligue inconnue et un match avec un club inexistant.
+
+### Écart assumé à ARCHITECTURE.md : la clé unique de `matchs`
+
+Annoncé : `(ligue, date, club_dom, club_ext)`. Retenu : `(code_fd, **saison**, club_dom, club_ext)`.
+Dans ces cinq championnats une paire domicile/extérieur ne se rencontre qu'une fois par saison,
+alors que l'heure — et parfois le jour — du coup d'envoi change couramment. Avec la date dans la
+clé, un match reporté entrerait **deux fois** et l'idempotence de T04 tomberait en silence.
+ARCHITECTURE.md a été mis à jour avec cette raison ; un test vérifie qu'un report ne crée pas un
+second match, un autre que le match retour (domicile et extérieur inversés) est bien accepté.
+
+### Le chargeur : trois propriétés, dans cet ordre
+
+1. **Rien n'est écrit si quelque chose ne va pas.** Les deux CSV sont entièrement contrôlés avant la
+   première écriture, et **toutes** les anomalies sont affichées ensemble — corriger le référentiel
+   une fois vaut mieux que cinq relances pour les découvrir une par une. Quatre refus testés
+   (ligue inconnue, `api_team_id` en doublon, nom de source en doublon, club de la saison en cours
+   sans identifiant API) laissent la base **vide**.
+2. **Idempotent.** Une ligne n'est écrite que si une valeur diffère réellement, et `maj_le` ne bouge
+   pas sans raison. Deuxième exécution : `0 insérés, 0 mis à jour, 165 inchangés`.
+3. **Rien n'est supprimé.** Un club en base et absent du CSV est signalé, jamais effacé : `matchs`
+   peut déjà le référencer.
+
+Un contrôle a été volontairement **assoupli** par rapport au plan : on exige que tout club de la
+saison en cours ait son `api_team_id`, mais on n'interdit pas l'inverse. Un club relégué garde
+l'identifiant appris quand il était en première division ; l'exiger vide aurait bloqué T03 à la
+première relégation, pour rien.
+
+### Faiblesse trouvée dans un garde-fou de T02, corrigée
+
+Le test `test_aucune_base_creee_dans_le_depot` de T02 exigeait **aucun** fichier `.db` dans `data/`.
+Il est tombé dès la première exécution réelle de T03 : `data/local.db` est la base locale de
+travail, valeur de `.env.example`, ignorée par Git — elle est légitime. Deux corrections :
+
+- le critère devient la **nouveauté** (relevé des bases présentes avant la suite), pas l'absence ;
+- le contrôle passe d'un test ordinaire à un **démontage de session**. Éprouvé : un test ajouté
+  exprès pour créer `data/essai_interdit.db` ne faisait rien tomber, parce que `test_isolation.py`
+  s'exécute avant lui dans l'ordre alphabétique. Le garde-fou hérité avait donc ce trou depuis T02 ;
+  le même essai échoue maintenant en nommant le fichier.
+
+### Divers
+
+- `charger_env` de `ingestion/api_football.py` délègue désormais son analyse de `.env` à
+  `bdd.config.lire_env` : un seul endroit décide de ce qu'est une ligne de `.env`. Ses tests
+  passent inchangés.
+- `.gitignore` : ajout de `data/backups/` — le motif `data/*.db` ne couvre pas un sous-dossier, et
+  la première sauvegarde du lanceur de migrations aurait été proposée au commit.
+- `.env.example` : `DOSSIER_SAUVEGARDES`. `tests/test_structure_depot.py` reconnaît la façon dont
+  `bdd/config.py` lit l'environnement, pour que le contrôle « toute variable lue est déclarée »
+  continue de mordre.
+- `migrations/` part vide (un README expose la convention) : le schéma initial vient de l'ORM.
+
+### Vérifications exécutées
+
+- `.venv/bin/pytest -q` → **165 passed in 8.75s** (98 de T02 + 67 nouveaux), aucun appel réseau.
+  `pytest` sans option donne le même résultat.
+- Tâche lancée pour de vrai : `--dry-run` (rien écrit), puis écriture (5 + 165), puis relance
+  (0 + 0). En base : 5 ligues, 165 clubs, 96 avec `api_team_id`, 96 en saison courante, 0 match,
+  31/35/33/34/32 clubs par ligue, `1. FC Köln` intact.
+- Lanceur de migrations éprouvé sur une **copie** de la base (hors dépôt) avec une migration
+  d'essai : sauvegarde vérifiée (92 Ko, 4 tables) prise avant l'écriture, index créé, second
+  passage « rien à faire ».
+- **Quatre régressions volontaires**, comme en T01 et T02 : listener `PRAGMA` retiré (2 tests de
+  clé étrangère tombent), `maj_le` touché à chaque passage (l'idempotence tombe), sauvegarde prise
+  après l'écriture (2 tests de migration tombent), test écrivant une base dans `data/` (le
+  démontage de session le nomme). Dépôt restauré ensuite ; empreinte de `clubs.csv` identique.
+- Rien n'a été committé (règle 7). L'ancien dépôt n'a pas été modifié (règle 1) : lecture par
+  `git show` sur la branche de D31, `HEAD` toujours sur `main`.
+- Prochaine étape : T04 (ingestion football-data des 5 ligues, 10 saisons + saison en cours).

@@ -9,7 +9,7 @@ production ») et `data/reference/clubs.csv`, source de vérité des noms de clu
 endroit ne le signale pas : elle passe au vert, et le dommage se découvre plus
 tard.
 
-Trois garde-fous, repris de l'ancien dépôt (`tests/conftest.py`,
+Quatre garde-fous, repris de l'ancien dépôt (`tests/conftest.py`,
 `test_database_isolation.py`, `test_path_isolation.py`) et adaptés :
 
 1. `DATABASE_URL` est **forcée** vers une base temporaire hors du dépôt, avant
@@ -19,14 +19,16 @@ Trois garde-fous, repris de l'ancien dépôt (`tests/conftest.py`,
    dépôt, quelle que soit la façon dont l'URL s'écrit ;
 3. l'empreinte SHA-256 de `data/reference/` est relevée avant chaque test et
    vérifiée après : un test qui modifie le référentiel échoue en nommant le
-   fichier, au lieu de le laisser altéré.
+   fichier, au lieu de le laisser altéré ;
+4. à la fin de la suite, aucune base ne doit avoir **apparu** dans `data/` — le
+   critère est la nouveauté, la base locale de travail étant légitime.
 
 La **lecture** de `data/reference/` reste libre : `test_referentiel_reel.py` et
 `test_structure_depot.py` en vivent.
 
 Ces garde-fous ne dépendent d'aucune bibliothèque de base de données : ils
-lisent une variable d'environnement et comparent des chemins. Ils sont donc
-actifs dès aujourd'hui, avant que T03 ne crée la base.
+lisent une variable d'environnement et comparent des chemins. Écrits en T02,
+avant l'existence de la base, ils sont restés valables quand T03 l'a créée.
 """
 
 from __future__ import annotations
@@ -51,6 +53,17 @@ _DOSSIER_TEMPORAIRE = Path(tempfile.mkdtemp(prefix="probafoot-tests-"))
 atexit.register(shutil.rmtree, _DOSSIER_TEMPORAIRE, ignore_errors=True)
 
 BASE_DE_TEST = _DOSSIER_TEMPORAIRE / "test.db"
+
+# Bases déjà présentes dans `data/` au démarrage de la suite. Une base locale y
+# est légitime — c'est la valeur de `.env.example`, ignorée par Git, celle que
+# crée `ingestion/charger_referentiel.py` sur la machine du développeur. Ce
+# qu'il faut interdire, c'est qu'un **test** en crée une : d'où un relevé
+# d'avant plutôt qu'une liste vide (constaté en T03).
+BASES_AVANT_LA_SUITE = (
+    {chemin.name for chemin in (RACINE / "data").glob("*.db")}
+    if (RACINE / "data").is_dir()
+    else set()
+)
 
 # Affectation directe et non `setdefault` : toute valeur venant du shell ou de
 # `.env` est écrasée. C'est le seul moyen de garantir qu'aucun test ne puisse
@@ -95,6 +108,32 @@ def est_base_du_depot(url: str) -> bool:
     if chemin is None:
         return False
     return chemin == RACINE or RACINE in chemin.parents
+
+
+def bases_apparues(avant: set[str], dossier: Path | None = None) -> list[str]:
+    """Bases présentes dans `data/` et absentes du relevé d'avant la suite."""
+    dossier = dossier if dossier is not None else RACINE / "data"
+    presentes = {chemin.name for chemin in dossier.glob("*.db")} if dossier.is_dir() else set()
+    return sorted(presentes - avant)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def aucune_base_creee_dans_le_depot() -> None:
+    """Vérifier, **une fois la suite terminée**, qu'aucune base n'est apparue.
+
+    Le contrôle a lieu au démontage et non dans un test : un test ordinaire ne
+    voit que l'état du dépôt à l'instant où lui-même s'exécute, et laisserait
+    donc passer une base créée par un test situé plus loin dans l'ordre de
+    collecte. Faiblesse du garde-fou hérité de T02, corrigée en T03.
+    """
+    yield
+    apparues = bases_apparues(BASES_AVANT_LA_SUITE)
+    if apparues:
+        raise AssertionError(
+            "Un test a créé une base dans le dépôt (règle 7) : "
+            f"{', '.join(apparues)}. Les tests écrivent dans `tmp_path` ou dans "
+            "la base temporaire de la suite, jamais dans data/."
+        )
 
 
 @pytest.fixture(scope="session", autouse=True)
