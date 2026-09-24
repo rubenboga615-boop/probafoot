@@ -1,0 +1,166 @@
+ligue,code_fd,slug_understat,api_league_id,club_id,nom_affiche,nom_football_data,nom_understat,nom_api_football,saisons,nb_saisons,statut,saison_2026_27
+Angleterre - Premier League,E0,EPL,39,E0-arsenal,Arsenal,Arsenal,Arsenal,,2016-2027,11,verifie,oui
+Angleterre - Premier League,E0,EPL,39,E0-astonvilla,Aston Villa,Aston Villa,Aston Villa,,2019-2027,8,verifie,oui
+Angleterre - Premier League,E0,EPL,39,E0-bournemouth,Bournemouth,Bournemouth,Bournemouth,,2016-2027,9,verifie,oui
+Angleterre - Premier League,E0,EPL,39,E0-brentford,Brentford,Brentford,Brentford,,2021-2027,6,verifie,oui
+Angleterre - Premier League,E0,EPL,39,E0-brighton,Brighton,Brighton,Brighton,,2017-2027,10,verifie,oui
+Angleterre - Premier League,E0,EPL,39,E0-burnley,Burnley,Burnley,Burnley,,2016-2026,8,verifie,non
+Angleterre - Premier League,E0,EPL,39,E0-cardiff,Cardiff,Cardiff,Cardiff,,2018-2019,1,verifie,non
+Angleterre - Premier League,E0,EPL,39,E0-chelsea,Chelsea,Chelsea,Chelsea,,2016-2027,11,verifie,oui
+Angleterre - Premier League,E0,EPL,39,E0-coventry,Coventry,Coventry,Coventry,,2026-2027,1,verifie,oui
+Angleterre - Premier League,E0,EPL,39,E0-crystalpalac,Crystal Palace,Crystal Palace,Crystal Palace,,2016-2027,11,verifie,oui
+Angleterre - Premier League,E0,EPL,39,E0-everton,Everton,Everton,Everton,,2016-2027,11,verifie,oui
+Angleterre - Premier League,E0,EPL,39,E0-fulham,Fulham,Fulham,Fulham,,2018-2027,7,verifie,oui
+Angleterre - Premier League,E0,EPL,39,E0-huddersfield,Huddersfield,Huddersfield,Huddersfield,,2017-2019,2,verifie,non
+Angleterre - Premier League,E0,EPL,39,E0-hull,Hull,Hull,Hull,,2016-2027,2,verifie,oui
+Angleterre - Premier League,E0,EPL,39,E0-ipswich,Ipswich,Ipswich,Ipswich,,2024-2027,2,verifie,oui
+Angleterre - Premier League,E0,EPL,39,E0-leeds,Leeds,Leeds,Leeds,,2020-2027,5,verifie,oui
+Angleterre - Premier League,E0,EPL,39,E0-leicester,Leicester,Leicester,Leicester,,2016-2025,8,verifie,non
+Angleterre - Premier League,E0,EPL,39,E0-liverpool,Liverpool,Liverpool,Liverpool,,2016-2027,11,verifie,oui
+Angleterre - Premier League,E0,EPL,39,E0-luton,Luton,Luton,Luton,,2023-2024,1,verifie,non
+Angleterre - Premier League,E0,EPL,39,E0-mancity,Manchester City,Man City,Manchester City,,2016-2027,11,verifie,oui
+Angleterre - Premier League,E0,EPL,39,E0-manunited,Manchester United,Man United,Manchester United,,2016-2027,11,verifie,oui
+Angleterre - Premier League,E0,EPL,39,E0-middlesbroug,Middlesbrough,Middlesbrough,Middlesbrough,,2016-2017,1,verifie,non
+Angleterre - Premier League,E0,EPL,39,E0-newcastle,Newcastle United,Newcastle,Newcastle United,,2017-2027,10,verifie,oui
+Angleterre - Premier League,E0,EPL,39,E0-norwich,Norwich,Norwich,Norwich,,2019-2022,2,verifie,non
+Angleterre - Premier League,E0,EPL,39,E0-nottmforest,Nottingham Forest,Nott'm Forest,Nottingham Forest,,2022-2027,5,verifie,oui
+Angleterre - Premier League,E0,EPL,39,E0-sheffielduni,Sheffield United,Sheffield United,Sheffield United,,2019-2024,3,verifie,non
+Angleterre - Premier League,E0,EPL,39,E0-southampton,Southampton,Southampton,Southampton,,2016-2025,8,verifie,non
+Angleterre - Premier League,E0,EPL,39,E0-stoke,Stoke,Stoke,Stoke,,2016-2018,2,verifie,non
+Angleterre - Premier League,E0,EPL,39,E0-sunderland,Sunderland,Sunderland,Sunderland,,2016-2027,3,verifie,oui
+Angleterre - Premier League,E0,EPL,39,E0-swansea,Swansea,Swansea,Swansea,,2016-2018,2,verifie,non
+Angleterre - Premier League,E0,EPL,39,E0-tottenham,Tottenham,Tottenham,Tottenham,,2016-2027,11,verifie,oui
+Angleterre - Premier League,E0,EPL,39,E0-watford,Watford,Watford,Watford,,2016-2022,5,verifie,non
+Angleterre - Premier League,E0,EPL,39,E0-westbrom,West Bromwich Albion,West Brom,West Bromwich Albion,,2016-2021,3,verifie,non
+Angleterre - Premier League,E0,EPL,39,E0-westham,West Ham,West Ham,West Ham,,2016-2026,10,verifie,non
+Angleterre - Premier League,E0,EPL,39,E0-wolves,Wolverhampton Wanderers,Wolves,Wolverhampton Wanderers,,2018-2026,8,verifie,non
+Espagne - La Liga,SP1,La_liga,140,SP1-alaves,Alaves,Alaves,Alaves,,2016-2027,10,verifie,oui
+Espagne - La Liga,SP1,La_liga,140,SP1-almeria,Almeria,Almeria,Almeria,,2022-2024,2,verifie,non
+Espagne - La Liga,SP1,La_liga,140,SP1-athbilbao,Athletic Club,Ath Bilbao,Athletic Club,,2016-2027,11,verifie,oui
+Espagne - La Liga,SP1,La_liga,140,SP1-athmadrid,Atletico Madrid,Ath Madrid,Atletico Madrid,,2016-2027,11,verifie,oui
+Espagne - La Liga,SP1,La_liga,140,SP1-barcelona,Barcelona,Barcelona,Barcelona,,2016-2027,11,verifie,oui
+Espagne - La Liga,SP1,La_liga,140,SP1-betis,Real Betis,Betis,Real Betis,,2016-2027,11,verifie,oui
+Espagne - La Liga,SP1,La_liga,140,SP1-cadiz,Cadiz,Cadiz,Cadiz,,2020-2024,4,verifie,non
+Espagne - La Liga,SP1,La_liga,140,SP1-celta,Celta Vigo,Celta,Celta Vigo,,2016-2027,11,verifie,oui
+Espagne - La Liga,SP1,La_liga,140,SP1-eibar,Eibar,Eibar,Eibar,,2016-2021,5,verifie,non
+Espagne - La Liga,SP1,La_liga,140,SP1-elche,Elche,Elche,Elche,,2020-2027,5,verifie,oui
+Espagne - La Liga,SP1,La_liga,140,SP1-espanol,Espanyol,Espanol,Espanyol,,2016-2027,9,verifie,oui
+Espagne - La Liga,SP1,La_liga,140,SP1-getafe,Getafe,Getafe,Getafe,,2017-2027,10,verifie,oui
+Espagne - La Liga,SP1,La_liga,140,SP1-girona,Girona,Girona,Girona,,2017-2026,6,verifie,non
+Espagne - La Liga,SP1,La_liga,140,SP1-granada,Granada,Granada,Granada,,2016-2024,5,verifie,non
+Espagne - La Liga,SP1,La_liga,140,SP1-huesca,SD Huesca,Huesca,SD Huesca,,2018-2021,2,verifie,non
+Espagne - La Liga,SP1,La_liga,140,SP1-lacoruna,Deportivo La Coruna,La Coruna,Deportivo La Coruna,,2016-2027,3,verifie,oui
+Espagne - La Liga,SP1,La_liga,140,SP1-laspalmas,Las Palmas,Las Palmas,Las Palmas,,2016-2025,4,verifie,non
+Espagne - La Liga,SP1,La_liga,140,SP1-leganes,Leganes,Leganes,Leganes,,2016-2025,5,verifie,non
+Espagne - La Liga,SP1,La_liga,140,SP1-levante,Levante,Levante,Levante,,2017-2027,7,verifie,oui
+Espagne - La Liga,SP1,La_liga,140,SP1-malaga,Malaga,Malaga,Malaga,,2016-2027,3,verifie,oui
+Espagne - La Liga,SP1,La_liga,140,SP1-mallorca,Mallorca,Mallorca,Mallorca,,2019-2026,6,verifie,non
+Espagne - La Liga,SP1,La_liga,140,SP1-osasuna,Osasuna,Osasuna,Osasuna,,2016-2027,9,verifie,oui
+Espagne - La Liga,SP1,La_liga,140,SP1-oviedo,Real Oviedo,Oviedo,Real Oviedo,,2025-2026,1,verifie,non
+Espagne - La Liga,SP1,La_liga,140,SP1-realmadrid,Real Madrid,Real Madrid,Real Madrid,,2016-2027,11,verifie,oui
+Espagne - La Liga,SP1,La_liga,140,SP1-santander,Racing Santander,Santander,Racing Santander,,2026-2027,1,verifie,oui
+Espagne - La Liga,SP1,La_liga,140,SP1-sevilla,Sevilla,Sevilla,Sevilla,,2016-2027,11,verifie,oui
+Espagne - La Liga,SP1,La_liga,140,SP1-sociedad,Real Sociedad,Sociedad,Real Sociedad,,2016-2027,11,verifie,oui
+Espagne - La Liga,SP1,La_liga,140,SP1-spgijon,Sporting Gijon,Sp Gijon,Sporting Gijon,,2016-2017,1,verifie,non
+Espagne - La Liga,SP1,La_liga,140,SP1-valencia,Valencia,Valencia,Valencia,,2016-2027,11,verifie,oui
+Espagne - La Liga,SP1,La_liga,140,SP1-valladolid,Real Valladolid,Valladolid,Real Valladolid,,2018-2025,5,verifie,non
+Espagne - La Liga,SP1,La_liga,140,SP1-vallecano,Rayo Vallecano,Vallecano,Rayo Vallecano,,2018-2027,7,verifie,oui
+Espagne - La Liga,SP1,La_liga,140,SP1-villarreal,Villarreal,Villarreal,Villarreal,,2016-2027,11,verifie,oui
+Italie - Serie A,I1,Serie_A,135,I1-atalanta,Atalanta,Atalanta,Atalanta,,2016-2027,11,verifie,oui
+Italie - Serie A,I1,Serie_A,135,I1-benevento,Benevento,Benevento,Benevento,,2017-2021,2,verifie,non
+Italie - Serie A,I1,Serie_A,135,I1-bologna,Bologna,Bologna,Bologna,,2016-2027,11,verifie,oui
+Italie - Serie A,I1,Serie_A,135,I1-brescia,Brescia,Brescia,Brescia,,2019-2020,1,verifie,non
+Italie - Serie A,I1,Serie_A,135,I1-cagliari,Cagliari,Cagliari,Cagliari,,2016-2027,10,verifie,oui
+Italie - Serie A,I1,Serie_A,135,I1-chievo,Chievo,Chievo,Chievo,,2016-2019,3,verifie,non
+Italie - Serie A,I1,Serie_A,135,I1-como,Como,Como,Como,,2024-2027,3,verifie,oui
+Italie - Serie A,I1,Serie_A,135,I1-cremonese,Cremonese,Cremonese,Cremonese,,2022-2026,2,verifie,non
+Italie - Serie A,I1,Serie_A,135,I1-crotone,Crotone,Crotone,Crotone,,2016-2021,3,verifie,non
+Italie - Serie A,I1,Serie_A,135,I1-empoli,Empoli,Empoli,Empoli,,2016-2025,6,verifie,non
+Italie - Serie A,I1,Serie_A,135,I1-fiorentina,Fiorentina,Fiorentina,Fiorentina,,2016-2027,11,verifie,oui
+Italie - Serie A,I1,Serie_A,135,I1-frosinone,Frosinone,Frosinone,Frosinone,,2018-2027,3,verifie,oui
+Italie - Serie A,I1,Serie_A,135,I1-genoa,Genoa,Genoa,Genoa,,2016-2027,10,verifie,oui
+Italie - Serie A,I1,Serie_A,135,I1-inter,Inter,Inter,Inter,,2016-2027,11,verifie,oui
+Italie - Serie A,I1,Serie_A,135,I1-juventus,Juventus,Juventus,Juventus,,2016-2027,11,verifie,oui
+Italie - Serie A,I1,Serie_A,135,I1-lazio,Lazio,Lazio,Lazio,,2016-2027,11,verifie,oui
+Italie - Serie A,I1,Serie_A,135,I1-lecce,Lecce,Lecce,Lecce,,2019-2027,6,verifie,oui
+Italie - Serie A,I1,Serie_A,135,I1-milan,AC Milan,Milan,AC Milan,,2016-2027,11,verifie,oui
+Italie - Serie A,I1,Serie_A,135,I1-monza,Monza,Monza,Monza,,2022-2027,4,verifie,oui
+Italie - Serie A,I1,Serie_A,135,I1-napoli,Napoli,Napoli,Napoli,,2016-2027,11,verifie,oui
+Italie - Serie A,I1,Serie_A,135,I1-palermo,Palermo,Palermo,Palermo,,2016-2017,1,verifie,non
+Italie - Serie A,I1,Serie_A,135,I1-parma,Parma Calcio 1913,Parma,Parma Calcio 1913,,2018-2027,6,verifie,oui
+Italie - Serie A,I1,Serie_A,135,I1-pescara,Pescara,Pescara,Pescara,,2016-2017,1,verifie,non
+Italie - Serie A,I1,Serie_A,135,I1-pisa,Pisa,Pisa,Pisa,,2025-2026,1,verifie,non
+Italie - Serie A,I1,Serie_A,135,I1-roma,Roma,Roma,Roma,,2016-2027,11,verifie,oui
+Italie - Serie A,I1,Serie_A,135,I1-salernitana,Salernitana,Salernitana,Salernitana,,2021-2024,3,verifie,non
+Italie - Serie A,I1,Serie_A,135,I1-sampdoria,Sampdoria,Sampdoria,Sampdoria,,2016-2023,7,verifie,non
+Italie - Serie A,I1,Serie_A,135,I1-sassuolo,Sassuolo,Sassuolo,Sassuolo,,2016-2027,10,verifie,oui
+Italie - Serie A,I1,Serie_A,135,I1-spal,SPAL 2013,Spal,SPAL 2013,,2017-2020,3,verifie,non
+Italie - Serie A,I1,Serie_A,135,I1-spezia,Spezia,Spezia,Spezia,,2020-2023,3,verifie,non
+Italie - Serie A,I1,Serie_A,135,I1-torino,Torino,Torino,Torino,,2016-2027,11,verifie,oui
+Italie - Serie A,I1,Serie_A,135,I1-udinese,Udinese,Udinese,Udinese,,2016-2027,11,verifie,oui
+Italie - Serie A,I1,Serie_A,135,I1-venezia,Venezia,Venezia,Venezia,,2021-2027,3,verifie,oui
+Italie - Serie A,I1,Serie_A,135,I1-verona,Verona,Verona,Verona,,2017-2026,8,verifie,non
+Allemagne - Bundesliga,D1,Bundesliga,78,D1-augsburg,Augsburg,Augsburg,Augsburg,,2016-2027,11,verifie,oui
+Allemagne - Bundesliga,D1,Bundesliga,78,D1-bayernmunich,Bayern Munich,Bayern Munich,Bayern Munich,,2016-2027,11,verifie,oui
+Allemagne - Bundesliga,D1,Bundesliga,78,D1-bielefeld,Arminia Bielefeld,Bielefeld,Arminia Bielefeld,,2020-2022,2,verifie,non
+Allemagne - Bundesliga,D1,Bundesliga,78,D1-bochum,Bochum,Bochum,Bochum,,2021-2025,4,verifie,non
+Allemagne - Bundesliga,D1,Bundesliga,78,D1-darmstadt,Darmstadt,Darmstadt,Darmstadt,,2016-2024,2,verifie,non
+Allemagne - Bundesliga,D1,Bundesliga,78,D1-dortmund,Borussia Dortmund,Dortmund,Borussia Dortmund,,2016-2027,11,verifie,oui
+Allemagne - Bundesliga,D1,Bundesliga,78,D1-einfrankfurt,Eintracht Frankfurt,Ein Frankfurt,Eintracht Frankfurt,,2016-2027,11,verifie,oui
+Allemagne - Bundesliga,D1,Bundesliga,78,D1-elversberg,Elversberg,Elversberg,Elversberg,,2026-2027,1,verifie,oui
+Allemagne - Bundesliga,D1,Bundesliga,78,D1-fckoln,FC Cologne,FC Koln,FC Cologne,,2016-2027,9,verifie,oui
+Allemagne - Bundesliga,D1,Bundesliga,78,D1-fortunadusse,Fortuna Duesseldorf,Fortuna Dusseldorf,Fortuna Duesseldorf,,2018-2020,2,verifie,non
+Allemagne - Bundesliga,D1,Bundesliga,78,D1-freiburg,Freiburg,Freiburg,Freiburg,,2016-2027,11,verifie,oui
+Allemagne - Bundesliga,D1,Bundesliga,78,D1-greutherfurt,Greuther Fuerth,Greuther Furth,Greuther Fuerth,,2021-2022,1,verifie,non
+Allemagne - Bundesliga,D1,Bundesliga,78,D1-hamburg,Hamburger SV,Hamburg,Hamburger SV,,2016-2027,4,verifie,oui
+Allemagne - Bundesliga,D1,Bundesliga,78,D1-hannover,Hannover 96,Hannover,Hannover 96,,2017-2019,2,verifie,non
+Allemagne - Bundesliga,D1,Bundesliga,78,D1-heidenheim,FC Heidenheim,Heidenheim,FC Heidenheim,,2023-2026,3,verifie,non
+Allemagne - Bundesliga,D1,Bundesliga,78,D1-hertha,Hertha Berlin,Hertha,Hertha Berlin,,2016-2023,7,verifie,non
+Allemagne - Bundesliga,D1,Bundesliga,78,D1-hoffenheim,Hoffenheim,Hoffenheim,Hoffenheim,,2016-2027,11,verifie,oui
+Allemagne - Bundesliga,D1,Bundesliga,78,D1-holsteinkiel,Holstein Kiel,Holstein Kiel,Holstein Kiel,,2024-2025,1,verifie,non
+Allemagne - Bundesliga,D1,Bundesliga,78,D1-ingolstadt,Ingolstadt,Ingolstadt,Ingolstadt,,2016-2017,1,verifie,non
+Allemagne - Bundesliga,D1,Bundesliga,78,D1-leverkusen,Bayer Leverkusen,Leverkusen,Bayer Leverkusen,,2016-2027,11,verifie,oui
+Allemagne - Bundesliga,D1,Bundesliga,78,D1-mgladbach,Borussia M.Gladbach,M'gladbach,Borussia M.Gladbach,,2016-2027,11,verifie,oui
+Allemagne - Bundesliga,D1,Bundesliga,78,D1-mainz,Mainz 05,Mainz,Mainz 05,,2016-2027,11,verifie,oui
+Allemagne - Bundesliga,D1,Bundesliga,78,D1-nurnberg,Nuernberg,Nurnberg,Nuernberg,,2018-2019,1,verifie,non
+Allemagne - Bundesliga,D1,Bundesliga,78,D1-paderborn,Paderborn,Paderborn,Paderborn,,2019-2027,2,verifie,oui
+Allemagne - Bundesliga,D1,Bundesliga,78,D1-rbleipzig,RasenBallsport Leipzig,RB Leipzig,RasenBallsport Leipzig,,2016-2027,11,verifie,oui
+Allemagne - Bundesliga,D1,Bundesliga,78,D1-schalke04,Schalke 04,Schalke 04,Schalke 04,,2016-2027,7,verifie,oui
+Allemagne - Bundesliga,D1,Bundesliga,78,D1-stpauli,St. Pauli,St Pauli,St. Pauli,,2024-2026,2,verifie,non
+Allemagne - Bundesliga,D1,Bundesliga,78,D1-stuttgart,VfB Stuttgart,Stuttgart,VfB Stuttgart,,2017-2027,9,verifie,oui
+Allemagne - Bundesliga,D1,Bundesliga,78,D1-unionberlin,Union Berlin,Union Berlin,Union Berlin,,2019-2027,8,verifie,oui
+Allemagne - Bundesliga,D1,Bundesliga,78,D1-werderbremen,Werder Bremen,Werder Bremen,Werder Bremen,,2016-2027,10,verifie,oui
+Allemagne - Bundesliga,D1,Bundesliga,78,D1-wolfsburg,Wolfsburg,Wolfsburg,Wolfsburg,,2016-2026,10,verifie,non
+France - Ligue 1,F1,Ligue_1,61,F1-ajaccio,Ajaccio,Ajaccio,Ajaccio,,2022-2023,1,verifie,non
+France - Ligue 1,F1,Ligue_1,61,F1-amiens,Amiens,Amiens,Amiens,,2017-2020,3,verifie,non
+France - Ligue 1,F1,Ligue_1,61,F1-angers,Angers,Angers,Angers,,2016-2027,10,verifie,oui
+France - Ligue 1,F1,Ligue_1,61,F1-auxerre,Auxerre,Auxerre,Auxerre,,2022-2027,4,verifie,oui
+France - Ligue 1,F1,Ligue_1,61,F1-bastia,SC Bastia,Bastia,SC Bastia,,2016-2017,1,verifie,non
+France - Ligue 1,F1,Ligue_1,61,F1-bordeaux,Bordeaux,Bordeaux,Bordeaux,,2016-2022,6,verifie,non
+France - Ligue 1,F1,Ligue_1,61,F1-brest,Brest,Brest,Brest,,2019-2027,8,verifie,oui
+France - Ligue 1,F1,Ligue_1,61,F1-caen,Caen,Caen,Caen,,2016-2019,3,verifie,non
+France - Ligue 1,F1,Ligue_1,61,F1-clermont,Clermont Foot,Clermont,Clermont Foot,,2021-2024,3,verifie,non
+France - Ligue 1,F1,Ligue_1,61,F1-dijon,Dijon,Dijon,Dijon,,2016-2021,5,verifie,non
+France - Ligue 1,F1,Ligue_1,61,F1-guingamp,Guingamp,Guingamp,Guingamp,,2016-2019,3,verifie,non
+France - Ligue 1,F1,Ligue_1,61,F1-lehavre,Le Havre,Le Havre,Le Havre,,2023-2027,4,verifie,oui
+France - Ligue 1,F1,Ligue_1,61,F1-lemans,Le Mans,Le Mans,Le Mans,,2026-2027,1,verifie,oui
+France - Ligue 1,F1,Ligue_1,61,F1-lens,Lens,Lens,Lens,,2020-2027,7,verifie,oui
+France - Ligue 1,F1,Ligue_1,61,F1-lille,Lille,Lille,Lille,,2016-2027,11,verifie,oui
+France - Ligue 1,F1,Ligue_1,61,F1-lorient,Lorient,Lorient,Lorient,,2016-2027,7,verifie,oui
+France - Ligue 1,F1,Ligue_1,61,F1-lyon,Lyon,Lyon,Lyon,,2016-2027,11,verifie,oui
+France - Ligue 1,F1,Ligue_1,61,F1-marseille,Marseille,Marseille,Marseille,,2016-2027,11,verifie,oui
+France - Ligue 1,F1,Ligue_1,61,F1-metz,Metz,Metz,Metz,,2016-2026,7,verifie,non
+France - Ligue 1,F1,Ligue_1,61,F1-monaco,Monaco,Monaco,Monaco,,2016-2027,11,verifie,oui
+France - Ligue 1,F1,Ligue_1,61,F1-montpellier,Montpellier,Montpellier,Montpellier,,2016-2025,9,verifie,non
+France - Ligue 1,F1,Ligue_1,61,F1-nancy,Nancy,Nancy,Nancy,,2016-2017,1,verifie,non
+France - Ligue 1,F1,Ligue_1,61,F1-nantes,Nantes,Nantes,Nantes,,2016-2026,10,verifie,non
+France - Ligue 1,F1,Ligue_1,61,F1-nice,Nice,Nice,Nice,,2016-2027,11,verifie,oui
+France - Ligue 1,F1,Ligue_1,61,F1-nimes,Nimes,Nimes,Nimes,,2018-2021,3,verifie,non
+France - Ligue 1,F1,Ligue_1,61,F1-parisfc,Paris FC,Paris FC,Paris FC,,2025-2027,2,verifie,oui
+France - Ligue 1,F1,Ligue_1,61,F1-parissg,Paris Saint Germain,Paris SG,Paris Saint Germain,,2016-2027,11,verifie,oui
+France - Ligue 1,F1,Ligue_1,61,F1-reims,Reims,Reims,Reims,,2018-2025,7,verifie,non
+France - Ligue 1,F1,Ligue_1,61,F1-rennes,Rennes,Rennes,Rennes,,2016-2027,11,verifie,oui
+France - Ligue 1,F1,Ligue_1,61,F1-stetienne,Saint-Etienne,St Etienne,Saint-Etienne,,2016-2025,7,verifie,non
+France - Ligue 1,F1,Ligue_1,61,F1-strasbourg,Strasbourg,Strasbourg,Strasbourg,,2017-2027,10,verifie,oui
+France - Ligue 1,F1,Ligue_1,61,F1-toulouse,Toulouse,Toulouse,Toulouse,,2016-2027,9,verifie,oui
+France - Ligue 1,F1,Ligue_1,61,F1-troyes,Troyes,Troyes,Troyes,,2017-2027,4,verifie,oui
