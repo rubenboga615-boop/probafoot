@@ -57,6 +57,46 @@
   enseignements ont été repris.
 - Prochaine étape : T01 (arborescence complète, `requirements.txt`, `.gitignore`).
 
+## 24/09/2026 — T01 : mise en ordre du dépôt (terminée)
+
+**Résultat** : le dépôt a l'arborescence de ARCHITECTURE.md, ses dépendances sont déclarées et
+épinglées, et `pytest -q` fonctionne enfin depuis la racine. 83 tests verts.
+
+- **Bug trouvé et corrigé** : `pytest -q`, la commande annoncée dans CLAUDE.md, échouait
+  (`ModuleNotFoundError: No module named 'ingestion'`, 3 modules de test sur 4 en erreur de
+  collecte). Seul `python -m pytest` marchait, parce qu'il ajoute le dossier courant au chemin
+  d'import. Corrigé par `pythonpath = .` dans `pytest.ini`. Les deux commandes donnent
+  maintenant le même résultat.
+- **Arborescence complétée** : `moteur/`, `backtest/`, `publication/`, `api/` (+ `routes/`),
+  `jobs/` avec un `__init__.py` portant une ligne de docstring ; `front/` (+ `css/`, `js/`) et
+  `reports/` avec un `.gitkeep` (Git ne versionne pas les dossiers vides).
+- **`pytest.ini`** : `testpaths`, `pythonpath = .`, `--strict-markers`, et le marqueur `reseau`
+  déclaré dès maintenant — la règle « aucun appel réseau dans les tests » est structurante pour
+  T04 à T08.
+- **Dépendances** : `requirements.txt` (exécution : `requests==2.34.2`) et `requirements-dev.txt`
+  (`-r requirements.txt` + `pytest==9.1.1`). Choix du propriétaire : on n'y met que ce qui est
+  réellement utilisé, versions exactes ; numpy/scipy (phase 3) et FastAPI (phase 6) seront
+  ajoutés par la tâche qui les utilise. Motif : sous Python 3.14 en proot, les paquets
+  scientifiques ne sont pas garantis de s'installer, et `pip install -r requirements.txt` doit
+  réussir aujourd'hui. Vérifié : installation sans erreur.
+- **`.gitignore` réorganisé et commenté** : ajout de `.env.*` avec l'exception `!.env.example`
+  (protège `.env.local`, `.env.prod`…) et de `*.log`. `reports/*.html` reste ignoré mais les
+  rapports de backtest en `.md` (T16) restent versionnés.
+- **Nouveau test `tests/test_structure_depot.py`** (37 tests) : présence de chaque dossier et de
+  chaque `__init__.py`, dépendances épinglées avec `==`, `.gitignore` interrogé par `git
+  check-ignore` lui-même, aucun fichier `.env` suivi par Git, aucune valeur dans les clés
+  `*_KEY` de `.env.example`, et toute variable d'environnement lue par le code déclarée dans
+  `.env.example`. Ces contrôles ont été éprouvés par quatre régressions volontaires
+  (version flottante, `__init__.py` supprimé, fausse clé dans le modèle, variable retirée du
+  modèle) : chacune a été signalée par le bon test, puis le dépôt a été restauré.
+- **Scripts hérités laissés en place** : `ingestion/download_football_data-2.py` et
+  `download_understat-1.py` ne sont pas importables (tiret et chiffre dans le nom) et n'ont
+  aucun test. Décision du propriétaire : ils seront renommés en `football_data.py` et
+  `understat.py`, adaptés et testés en **T04** et **T05**, qui sont leurs tâches.
+- **Tests** : `.venv/bin/pytest -q` → `83 passed in 1.07s`, sans aucun appel réseau.
+- Rien n'a été committé (règle 7).
+- Prochaine étape : T02 (audit de l'ancien dépôt `pronostic-sportif`, en lecture seule).
+
 ## Idées v2
 
 **Collecte API-Football déjà sur le disque** (`data/raw/api-football/stats/`, hors Git) :

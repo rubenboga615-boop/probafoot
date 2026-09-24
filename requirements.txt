@@ -1,0 +1,6 @@
+# Dépendances d'exécution de ProbaFoot.
+#   pip install -r requirements.txt
+# Versions épinglées exactement : un pronostic publié doit être reproductible
+# (règle 9). Chaque bibliothèque est ajoutée par la tâche qui l'utilise pour la
+# première fois (moteur en phase 3, FastAPI en phase 6), jamais par avance.
+requests==2.34.2

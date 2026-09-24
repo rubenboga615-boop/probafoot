@@ -1,10 +1,24 @@
+# Secrets : jamais dans Git (règle 8). Seul le modèle est versionné.
 .env
+.env.*
+!.env.example
+
+# Environnement Python
 .venv/
 __pycache__/
 *.pyc
 .pytest_cache/
+
+# Données brutes téléchargées et bases locales
 data/raw/
 data/*.db
 *.sqlite
+
+# Journaux
+*.log
+
+# Rapports : les rapports de backtest en .md (T16) sont versionnés,
+# les exports HTML ne le sont pas.
 reports/*.html
+
 .DS_Store
